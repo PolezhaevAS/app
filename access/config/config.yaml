@@ -1,0 +1,19 @@
+service_desc:
+  name: access
+
+grpc:
+  network: tcp
+  bind: :9090
+
+token:
+  secret_key: ""
+
+database:
+  host: "postgres-users"
+  port: 5432
+  user: "postgres"
+  password: "qwerty"
+  db: "postgres"
+
+access:
+  
