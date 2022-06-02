@@ -9,12 +9,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Modules access - map[module][]methods
+// Services access - map[service][]methods
 type Claims struct {
-	UserId        uint64
-	Login         string
-	ModulesAccess map[string][]string
-	Exp           int64
+	UserId         uint64
+	Login          string
+	ServicesAccess map[string][]string
+	Exp            int64
 }
 
 type claimsContextKey struct{}
