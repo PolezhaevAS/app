@@ -1,0 +1,274 @@
+syntax = "proto3";
+
+package access.grpc;
+option go_package = "app/access/proto;pb";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service Access {
+    // Get user accesses by user id
+    rpc UserAccesses(UserAccessesRequest) returns (UserAccessesResponse) {
+        option (google.api.http) = {
+            get: "/access/v1/user_accesses"
+        };
+    }
+
+    // Get list groups
+    rpc List(google.protobuf.Empty) returns(ListResponse) {
+        option (google.api.http) = {
+            get: "/access/v1/group"
+        };
+    }
+
+    // Get group
+    rpc Group(GroupRequest) returns(GroupResponse) {
+        option (google.api.http) = {
+            get: "/access/v1/group/by_id"
+        };
+    };
+
+    // Create new group 
+    rpc CreateGroup(CreateGroupRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/access/v1/group"
+            body: "*"
+        };
+    }
+
+    // Update group
+    rpc UpdateGroup(UpdateGroupRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/access/v1/group"
+            body: "*"
+        };
+    }
+
+    // Delete group
+    rpc DeleteGroup(DeleteGroupRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/access/v1/group"
+        };
+    }
+
+    // Get users from group
+    rpc Users(UsersRequest) returns(UsersResponse) {
+        option (google.api.http) = {
+            get: "/access/v1/group/users"
+        };
+    }
+
+    // Add user id into group
+    rpc AddUser(AddUserRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/access/v1/group/users"
+            body: "*"
+        };
+    }
+
+    // Remove user id from group
+    rpc RemoveUser(RemoveUserRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/access/v1/group/users"
+        };
+    }
+
+    // Get list services
+    rpc ListServices(google.protobuf.Empty) returns(ListServicesResponse) {
+        option (google.api.http) = {
+            get: "/access/v1/services"
+        };
+    }
+
+    // Get services from group 
+    rpc Service(ServiceRequest) returns(ServiceResponse) {
+        option (google.api.http) = {
+            get: "/access/v1/services/by_id"
+        };
+    }
+
+    // Add module id into group by group id
+    rpc AddService(AddServiceRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/access/v1/group/services"
+            body: "*"
+        };
+    }
+
+    // Remove module from group by id
+    rpc RemoveService(RemoveServiceRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/access/v1/group/services"
+        };
+    }
+
+    // Add access to method module into group by id
+    rpc AddMethod(AddMethodRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/access/v1/group/methods"
+            body: "*"
+        };
+    }
+
+    // Remove access to method from group by id
+    rpc RemoveMethod(RemoveMethodRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/access/v1/group/methods"
+        };
+    }
+}
+
+// 
+message Method {
+    uint64 id = 1;
+    string name = 2;
+}
+
+// 
+message Service {
+    uint64 id = 1;
+    string name = 2;
+    repeated Method methods = 3;
+}
+
+// 
+message Group {
+    uint64 id = 1;
+    string name = 2;
+    repeated uint64 users = 3;
+    repeated Service services = 4;
+}
+
+// 
+message UserAccessesRequest {
+    // User identificator
+    uint64 id = 1;
+}
+
+//
+message UserAccessesResponse {
+    // List groups
+    repeated Group groups = 1;
+}
+
+//
+message ListResponse {
+    // List groups
+    repeated Group groups = 1;
+}
+
+//
+message GroupRequest {
+    // Group identificator
+    uint64 id = 1;
+}
+
+//
+message GroupResponse {
+    // Group
+    Group group = 1;
+}
+
+// 
+message CreateGroupRequest {
+    // Name of new group
+    string name = 1;
+}
+
+//
+message UpdateGroupRequest {
+    // Group identificator
+    uint64 id = 1;
+    // New name
+    string name = 2;
+}
+
+//
+message DeleteGroupRequest {
+    // Group identificator
+    uint64 id = 1;
+}
+
+//
+message UsersRequest {
+    // Group identificator
+    uint64 id = 1;
+}
+
+// 
+message UsersResponse {
+    // List users identificator
+    repeated uint64 users = 1;
+}
+
+//
+message AddUserRequest {
+    // Group identificator
+    uint64 group_id = 1;
+
+    // User identificator
+    uint64 user_id = 2;
+}
+
+//
+message RemoveUserRequest {
+    // Group identificator
+    uint64 group_id = 1;
+
+    // User identificator
+    uint64 user_id = 2;
+}
+
+// 
+message ListServicesResponse {
+    // List services
+    repeated Service services = 1;
+}
+
+//
+message ServiceRequest {
+    // Service identificator
+    uint64 id = 1;
+}
+
+//
+message ServiceResponse {
+    // Service
+    Service service = 1;
+}
+
+// 
+message AddServiceRequest {
+    // Group identificator
+    uint64 group_id = 1;
+
+    // Service identificator
+    uint64 service_id = 2;
+}
+
+//
+message RemoveServiceRequest {
+    // Group identificator
+    uint64 group_id = 1;
+
+    // Service identificator
+    uint64 service_id = 2;
+}
+
+// 
+message AddMethodRequest {
+    // Group identificator
+    uint64 group_id = 1;
+
+    // Method identificator
+    uint64 method_id = 2;
+}
+
+// 
+message RemoveMethodRequest {
+    // Group identificator
+    uint64 group_id = 1;
+
+    // Method identificator
+    uint64 method_id = 2;
+}
