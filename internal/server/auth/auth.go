@@ -5,6 +5,7 @@ import (
 	"app/internal/token"
 	"context"
 	"errors"
+	"log"
 	"strings"
 
 	grpcmid "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -22,12 +23,15 @@ var (
 type Auth struct {
 	m           *token.Source
 	descService *service.Service
+	// TODO: need fix
+	adminLogin string
 }
 
-func New(m *token.Source, service *service.Service) *Auth {
+func New(m *token.Source, service *service.Service, admin string) *Auth {
 	return &Auth{
 		m:           m,
 		descService: service,
+		adminLogin:  admin,
 	}
 }
 
@@ -76,6 +80,10 @@ func (a *Auth) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 			access, exists = a.descService.Methods[method]
 		)
 
+		log.Println("Request method: ", method)
+
+		log.Println("Desc Service: ", a.descService)
+
 		// This need to check access
 		if !exists {
 			err = ErrUnsupportedMethod
@@ -89,6 +97,11 @@ func (a *Auth) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		var claims *token.Claims
 		if claims, err = a.getClaims(ctx); err != nil {
 			return
+		}
+
+		// TODO: need fix
+		if claims.Login == a.adminLogin {
+			return handler(ctx, req)
 		}
 
 		if err = a.checkAccess(claims, method); err != nil {
@@ -125,6 +138,11 @@ func (a *Auth) StreamServerInterceptor() grpc.StreamServerInterceptor {
 		var claims *token.Claims
 		if claims, err = a.getClaims(ctx); err != nil {
 			return
+		}
+
+		// TODO: need fix
+		if claims.Login == a.adminLogin {
+			return handler(srv, stream)
 		}
 
 		if err = a.checkAccess(claims, method); err != nil {

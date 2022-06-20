@@ -1,6 +1,7 @@
 package server
 
 import (
+	"app/internal/server/auth"
 	"log"
 	"net"
 	"os"
@@ -34,9 +35,12 @@ type Server struct {
 
 	// global gRPC-server config.
 	cfg *Config
+
+	// jwt-auth instance.
+	auth *auth.Auth
 }
 
-func New(conf *Config) (s *Server, err error) {
+func New(conf *Config, auth *auth.Auth) (s *Server, err error) {
 	s = new(Server)
 
 	s.cfg = conf
@@ -46,7 +50,10 @@ func New(conf *Config) (s *Server, err error) {
 	}
 
 	// create a new gRPC server.
-	s.grpc = grpc.NewServer()
+	s.grpc = grpc.NewServer(
+		grpc.StreamInterceptor(auth.StreamServerInterceptor()),
+		grpc.UnaryInterceptor(auth.UnaryServerInterceptor()),
+	)
 
 	return s, nil
 }
