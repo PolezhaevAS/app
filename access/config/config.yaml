@@ -3,17 +3,16 @@ service_desc:
 
 grpc:
   network: tcp
-  bind: :9090
+  bind: :7070
 
 token:
-  secret_key: ""
+  secret: "123213213211"
+  algorithm: HS256
 
-database:
-  host: "postgres-users"
-  port: 5432
-  user: "postgres"
-  password: "qwerty"
-  db: "postgres"
+# postgresql database configuration.
+db:
+  driver: 'postgres'
+  url: 'postgresql://postgres:qwerty@postgres-users:5432/postgres?sslmode=disable'
 
 access:
   

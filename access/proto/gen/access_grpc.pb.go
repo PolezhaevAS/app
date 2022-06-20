@@ -39,12 +39,6 @@ type AccessClient interface {
 	RemoveUser(ctx context.Context, in *RemoveUserRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Get list services
 	ListServices(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ListServicesResponse, error)
-	// Get services from group
-	Service(ctx context.Context, in *ServiceRequest, opts ...grpc.CallOption) (*ServiceResponse, error)
-	// Add module id into group by group id
-	AddService(ctx context.Context, in *AddServiceRequest, opts ...grpc.CallOption) (*empty.Empty, error)
-	// Remove module from group by id
-	RemoveService(ctx context.Context, in *RemoveServiceRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Add access to method module into group by id
 	AddMethod(ctx context.Context, in *AddMethodRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Remove access to method from group by id
@@ -149,33 +143,6 @@ func (c *accessClient) ListServices(ctx context.Context, in *empty.Empty, opts .
 	return out, nil
 }
 
-func (c *accessClient) Service(ctx context.Context, in *ServiceRequest, opts ...grpc.CallOption) (*ServiceResponse, error) {
-	out := new(ServiceResponse)
-	err := c.cc.Invoke(ctx, "/access.grpc.Access/Service", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accessClient) AddService(ctx context.Context, in *AddServiceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/access.grpc.Access/AddService", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *accessClient) RemoveService(ctx context.Context, in *RemoveServiceRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/access.grpc.Access/RemoveService", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *accessClient) AddMethod(ctx context.Context, in *AddMethodRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/access.grpc.Access/AddMethod", in, out, opts...)
@@ -218,12 +185,6 @@ type AccessServer interface {
 	RemoveUser(context.Context, *RemoveUserRequest) (*empty.Empty, error)
 	// Get list services
 	ListServices(context.Context, *empty.Empty) (*ListServicesResponse, error)
-	// Get services from group
-	Service(context.Context, *ServiceRequest) (*ServiceResponse, error)
-	// Add module id into group by group id
-	AddService(context.Context, *AddServiceRequest) (*empty.Empty, error)
-	// Remove module from group by id
-	RemoveService(context.Context, *RemoveServiceRequest) (*empty.Empty, error)
 	// Add access to method module into group by id
 	AddMethod(context.Context, *AddMethodRequest) (*empty.Empty, error)
 	// Remove access to method from group by id
@@ -264,15 +225,6 @@ func (UnimplementedAccessServer) RemoveUser(context.Context, *RemoveUserRequest)
 }
 func (UnimplementedAccessServer) ListServices(context.Context, *empty.Empty) (*ListServicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServices not implemented")
-}
-func (UnimplementedAccessServer) Service(context.Context, *ServiceRequest) (*ServiceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Service not implemented")
-}
-func (UnimplementedAccessServer) AddService(context.Context, *AddServiceRequest) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddService not implemented")
-}
-func (UnimplementedAccessServer) RemoveService(context.Context, *RemoveServiceRequest) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveService not implemented")
 }
 func (UnimplementedAccessServer) AddMethod(context.Context, *AddMethodRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddMethod not implemented")
@@ -473,60 +425,6 @@ func _Access_ListServices_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Access_Service_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServiceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccessServer).Service(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/access.grpc.Access/Service",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccessServer).Service(ctx, req.(*ServiceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Access_AddService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddServiceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccessServer).AddService(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/access.grpc.Access/AddService",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccessServer).AddService(ctx, req.(*AddServiceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Access_RemoveService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveServiceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccessServer).RemoveService(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/access.grpc.Access/RemoveService",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccessServer).RemoveService(ctx, req.(*RemoveServiceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Access_AddMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddMethodRequest)
 	if err := dec(in); err != nil {
@@ -609,18 +507,6 @@ var Access_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListServices",
 			Handler:    _Access_ListServices_Handler,
-		},
-		{
-			MethodName: "Service",
-			Handler:    _Access_Service_Handler,
-		},
-		{
-			MethodName: "AddService",
-			Handler:    _Access_AddService_Handler,
-		},
-		{
-			MethodName: "RemoveService",
-			Handler:    _Access_RemoveService_Handler,
 		},
 		{
 			MethodName: "AddMethod",
