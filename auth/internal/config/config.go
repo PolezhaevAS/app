@@ -45,7 +45,7 @@ func (c *Config) Load() *Config {
 	v.SetConfigType("yaml")
 	v.AddConfigPath(".")
 	v.AddConfigPath("/app/config")
-	v.AddConfigPath("../../config")
+	v.AddConfigPath("../config")
 	v.AddConfigPath("/etc/auth")
 
 	v.SetEnvPrefix("Auth")                             //

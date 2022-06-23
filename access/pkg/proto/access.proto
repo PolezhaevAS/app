@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package access.grpc;
-option go_package = "app/access/proto;pb";
+option go_package = "app/access/pkg/proto;pb";
 
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";

@@ -4,9 +4,13 @@ import (
 	"app/auth/internal/models"
 	sqldb "app/internal/sql"
 	"context"
+
+	_ "github.com/lib/pq"
 )
 
 type Repository interface {
+	Close()
+
 	Users() Users
 }
 

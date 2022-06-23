@@ -1,11 +1,13 @@
 package main
 
 import (
+	broker_auth "app/access/internal/broker"
 	"app/access/internal/config"
 	db "app/access/internal/database"
 	server_access "app/access/internal/server"
 	service_access "app/access/internal/service"
 	pb "app/access/pkg/proto/gen"
+	"app/internal/broker"
 	grpc_server "app/internal/server"
 	auth "app/internal/server/auth"
 	token "app/internal/token"
@@ -46,7 +48,11 @@ func main() {
 
 	log.Println("Start app")
 
-	serviceDesc := server_access.Rules(&pb.Access_ServiceDesc)
+	serviceDesc := server_access.Rules(pb.Access_ServiceDesc)
+	broker, err := broker.New(pb.Access_ServiceDesc, cfg.Broker)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	jwt, err = token.New(cfg.Token)
 	if err != nil {
@@ -62,6 +68,10 @@ func main() {
 
 	service = service_access.New(database)
 	server = server_access.New(service)
+	authBroker := broker_auth.New(broker, service)
+
+	authBroker.Run()
+	defer authBroker.Stop()
 
 	pb.RegisterAccessServer(grpc.Grpc(), server)
 	grpc.RunAsync()

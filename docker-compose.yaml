@@ -40,21 +40,9 @@ services:
     logging:
       driver: none
 
-  access:
-    container_name: access
-    build: 
-      context: .
-      dockerfile: ./docker/access/Dockerfile
-    ports:
-      - 7070:7070
-    depends_on:
-      - postgres-users
-      - rabbitmq
-
   
 
 volumes:
-  access: 
   rabbitmq_data:
   rabbitmq_log:
 

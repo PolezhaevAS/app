@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Rules(s *grpc.ServiceDesc) *service.Service {
+func Rules(s grpc.ServiceDesc) *service.Service {
 	service := service.New(s)
 
 	// For example

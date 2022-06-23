@@ -2,16 +2,17 @@ package service
 
 import (
 	access "app/access/pkg/proto/gen"
+	auth "app/auth/pkg/proto/gen"
 
 	"google.golang.org/grpc"
 )
 
 type Service struct {
-	service *grpc.ServiceDesc
+	service grpc.ServiceDesc
 	openApi []string
 }
 
-func New(service *grpc.ServiceDesc) *Service {
+func New(service grpc.ServiceDesc) *Service {
 	return &Service{service: service}
 }
 
@@ -35,6 +36,7 @@ func (s *Service) Name() string {
 func Services() (s []grpc.ServiceDesc) {
 
 	s = append(s, access.Access_ServiceDesc)
+	s = append(s, auth.Auth_ServiceDesc)
 
 	return
 }

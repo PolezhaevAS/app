@@ -8,7 +8,11 @@ vet:
 	go vet ./...
 
 docker-compose:
-	docker compose -f docker-compose.yaml up --build 
+	docker compose -f docker-compose.yaml up 
+	
+
+docker-services:
+	docker compose -f docker-compose.services.yaml up --build
 
 migrate-up:
 	migrate -path access/migrates -verbose -database=${ACCESS_DB} up

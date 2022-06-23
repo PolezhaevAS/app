@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package access;
+package broker.access;
 option go_package = "app/access/pkg/access;access";
 
-service Access {
+service AccessBroker {
     rpc UserAccess(UserAccessRequest) returns(UserAccessResponse);
 }
 

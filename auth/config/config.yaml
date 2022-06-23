@@ -1,6 +1,6 @@
 grpc:
   network: tcp
-  bind: :7070
+  bind: :7071
 
 token:
   secret: "123213213211"
@@ -9,7 +9,7 @@ token:
 # postgresql database configuration.
 db:
   driver: 'postgres'
-  url: 'postgresql://postgres:qwerty@postgres-users:5432/access?sslmode=disable'
+  url: 'postgresql://postgres:qwerty@postgres-users:5432/users?sslmode=disable'
 
 broker:
   url: "amqp://guest:guest@rabbitmq:5672/"
