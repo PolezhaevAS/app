@@ -5,10 +5,9 @@ import (
 	db "app/access/internal/database"
 	server_access "app/access/internal/server"
 	service_access "app/access/internal/service"
-	pb "app/access/proto/gen"
+	pb "app/access/pkg/proto/gen"
 	grpc_server "app/internal/server"
 	auth "app/internal/server/auth"
-	service_descr "app/internal/service"
 	token "app/internal/token"
 	"context"
 	"flag"
@@ -27,7 +26,6 @@ func main() {
 		grpc_auth *auth.Auth
 		server    *server_access.Server
 		service   *service_access.Access
-		serviced  *service_descr.Service
 	)
 
 	init := flag.Bool("init", false, "first start")
@@ -48,17 +46,14 @@ func main() {
 
 	log.Println("Start app")
 
-	serviced, err = service_descr.New(cfg.Service)
-	if err != nil {
-		log.Fatal(err)
-	}
+	serviceDesc := server_access.Rules(&pb.Access_ServiceDesc)
 
 	jwt, err = token.New(cfg.Token)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	grpc_auth = auth.New(jwt, serviced, "admin")
+	grpc_auth = auth.New(jwt, serviceDesc, "admin")
 
 	grpc, err = grpc_server.New(cfg.GRPC, grpc_auth)
 	if err != nil {

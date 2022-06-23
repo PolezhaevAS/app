@@ -1,43 +1,40 @@
 package service
 
 import (
-	"fmt"
+	access "app/access/pkg/proto/gen"
+
+	"google.golang.org/grpc"
 )
 
-type Config struct {
-	Name string `json:"name" yaml:"name" toml:"name" mapstructure:"name"` //nolint
-}
-
-// No default config
-func NewConfig() *Config {
-	return &Config{}
-}
-
-// Service is a description of service
 type Service struct {
-	Name    string
-	Methods map[string]bool
+	service *grpc.ServiceDesc
+	openApi []string
 }
 
-func New(cfg *Config) (*Service, error) {
-	switch cfg.Name {
-	case "access":
-		return NewAccessService(), nil
-	default:
-		return nil, fmt.Errorf("no service with name %s", cfg.Name)
+func New(service *grpc.ServiceDesc) *Service {
+	return &Service{service: service}
+}
+
+func (s *Service) AddOpenApi(methodName string) {
+	s.openApi = append(s.openApi, methodName)
+}
+
+func (s *Service) OpenApi(methodName string) bool {
+	for _, m := range s.openApi {
+		if m == methodName {
+			return true
+		}
 	}
+	return false
 }
 
-type AllServices struct {
-	Services []*Service
+func (s *Service) Name() string {
+	return s.service.ServiceName
 }
 
-func All() *AllServices {
+func Services() (s []grpc.ServiceDesc) {
 
-	var services []*Service
-	services = append(services, NewAccessService())
+	s = append(s, access.Access_ServiceDesc)
 
-	return &AllServices{
-		Services: services,
-	}
+	return
 }

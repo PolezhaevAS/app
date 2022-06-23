@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/dgrijalva/jwt-go/v4"
@@ -43,4 +44,21 @@ func (c *Claims) Valid(h *jwt.ValidationHelper) error {
 	}
 
 	return nil
+}
+
+func (c *Claims) Access(service, method string) error {
+	var methods, ok = c.ServicesAccess[service]
+
+	if !ok {
+		return errors.New("no access to service")
+	}
+
+	for _, claimMethod := range methods {
+		if method == claimMethod {
+			return nil
+		}
+	}
+
+	return errors.New("no access")
+
 }

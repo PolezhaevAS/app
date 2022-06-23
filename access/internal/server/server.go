@@ -2,11 +2,9 @@ package server
 
 import (
 	"app/access/internal/service"
-	pb "app/access/proto/gen"
+	pb "app/access/pkg/proto/gen"
 	"context"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -21,26 +19,26 @@ func New(s service.Service) *Server {
 	}
 }
 
-func (s *Server) UserAccesses(ctx context.Context, req *pb.UserAccessesRequest) (*pb.UserAccessesResponse, error) {
+// func (s *Server) UserAccesses(ctx context.Context, req *pb.UserAccessesRequest) (*pb.UserAccessesResponse, error) {
 
-	if req.GetId() == 0 {
-		return &pb.UserAccessesResponse{}, status.Errorf(codes.Aborted, "invalid input data")
-	}
+// 	if req.GetId() == 0 {
+// 		return &pb.UserAccessesResponse{}, status.Errorf(codes.Aborted, "invalid input data")
+// 	}
 
-	answer, err := s.s.UserAccesses(ctx, req.Id)
-	if err != nil {
-		return &pb.UserAccessesResponse{}, err
-	}
+// 	answer, err := s.s.UserAccesses(ctx, req.Id)
+// 	if err != nil {
+// 		return &pb.UserAccessesResponse{}, err
+// 	}
 
-	var accesses []*pb.AccessUser
-	for service, method := range answer {
-		for _, method_name := range method {
-			accesses = append(accesses, &pb.AccessUser{Service: service, Method: method_name})
-		}
-	}
+// 	var accesses []*pb.AccessUser
+// 	for service, method := range answer {
+// 		for _, method_name := range method {
+// 			accesses = append(accesses, &pb.AccessUser{Service: service, Method: method_name})
+// 		}
+// 	}
 
-	return &pb.UserAccessesResponse{Access: accesses}, nil
-}
+// 	return &pb.UserAccessesResponse{Access: accesses}, nil
+// }
 
 func (s *Server) List(ctx context.Context, _ *emptypb.Empty) (*pb.ListResponse, error) {
 	return &pb.ListResponse{}, nil

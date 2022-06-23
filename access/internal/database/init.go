@@ -16,7 +16,7 @@ func (db *DB) FirstStart(ctx context.Context) error {
 }
 
 func (db *DB) initServices(ctx context.Context) error {
-	services := service.All()
+	services := service.Services()
 
 	stmt, err := db.Conn.PrepareContext(ctx, queries.SERVICE_ADD)
 	if err != nil {
@@ -24,8 +24,8 @@ func (db *DB) initServices(ctx context.Context) error {
 	}
 	defer stmt.Close()
 
-	for idSlice, service := range services.Services {
-		id := idSlice + 1
+	for idService, service := range services {
+		id := idService + 1
 		// check for exists
 		exists, err := db.existsService(ctx, id)
 		if err != nil {
@@ -35,22 +35,22 @@ func (db *DB) initServices(ctx context.Context) error {
 		if !exists {
 			// insert service
 
-			_, err = stmt.ExecContext(ctx, id, service.Name)
+			_, err = stmt.ExecContext(ctx, id, service.ServiceName)
 			if err != nil {
 				return err
 			}
 		}
 
 		// insert methods
-		for method := range service.Methods {
+		for _, method := range service.Methods {
 
-			exists, err = db.existsMethod(ctx, id, method)
+			exists, err = db.existsMethod(ctx, id, method.MethodName)
 			if err != nil {
 				return err
 			}
 
 			if !exists {
-				err = db.initMethod(ctx, id, method)
+				err = db.initMethod(ctx, id, method.MethodName)
 				if err != nil {
 					return err
 				}
