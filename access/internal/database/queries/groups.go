@@ -5,6 +5,11 @@ const (
 
 	GROUP_LIST = "SELECT id, name, description FROM access.groups;"
 
+	GROUP_SERVICES = `select s.id, s."name" , m.id, m."name"  from "access".group_methods gm
+	join "access".methods m on gm.method_id = m.id 
+	join "access".services s on m.service_id = s.id  
+	where gm.group_id = $1;`
+
 	GROUP_CREATE = `
 	INSERT INTO "access"."groups"
 	("name", description)

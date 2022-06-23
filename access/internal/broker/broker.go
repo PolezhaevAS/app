@@ -42,7 +42,7 @@ func (b *Broker) UserAccess() {
 			continue
 		}
 
-		a, err := b.s.UserAccesses(context.Background(), req.GetId())
+		a, err := b.s.Access(context.Background(), req.GetId())
 		if err != nil {
 			log.Println(err)
 			continue

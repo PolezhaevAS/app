@@ -106,8 +106,9 @@ message Service {
 message Group {
     uint64 id = 1;
     string name = 2;
-    repeated uint64 users = 3;
-    repeated Service services = 4;
+    string desc = 3;
+    repeated uint64 users = 4;
+    repeated Service services = 5;
 }
 
 //
@@ -138,6 +139,8 @@ message GroupResponse {
 message CreateGroupRequest {
     // Name of new group
     string name = 1;
+
+    string desc = 2;
 }
 
 //
@@ -146,6 +149,8 @@ message UpdateGroupRequest {
     uint64 id = 1;
     // New name
     string name = 2;
+
+    string desc = 3;
 }
 
 //
