@@ -1,6 +1,10 @@
 package models
 
-import pb "app/auth/pkg/proto/gen"
+import (
+	pb "app/auth/pkg/proto/gen"
+	"crypto/sha1"
+	"fmt"
+)
 
 type User struct {
 	ID       uint64
@@ -15,4 +19,18 @@ func (u *User) Proto() *pb.User {
 		Name:  u.Name,
 		Login: u.Login,
 	}
+}
+
+func UserFromProto(user *pb.User) *User {
+	return &User{
+		ID:    user.GetId(),
+		Name:  user.GetName(),
+		Login: user.GetLogin(),
+	}
+}
+
+func (u *User) PasswordSHA1(pass, salt string) {
+	hash := sha1.New()
+	hash.Write([]byte(pass))
+	u.Password = fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
