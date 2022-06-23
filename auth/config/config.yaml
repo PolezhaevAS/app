@@ -14,5 +14,6 @@ db:
 broker:
   url: "amqp://guest:guest@rabbitmq:5672/"
 
-access:
-  
+auth:
+  ttl: 10
+  salt: "dfeqfejcq"  
