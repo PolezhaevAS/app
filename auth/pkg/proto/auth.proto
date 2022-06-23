@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package auth.grpc;
+option go_package = "app/auth/pkg/proto;pb";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service Auth {
+    // Sign in by login and password
+    rpc SignIn(SignInRequest) returns(SignInResponse) {
+        option (google.api.http) = {
+            get: "/auth/v1/sign_in"
+        };
+    }
+
+    // Get user info by user id
+    rpc User(UserRequest) returns(UserResponse) {
+        option (google.api.http) = {
+            get: "/auth/v1/admin/users/user"
+        };
+    }
+
+    // Get list users
+    rpc List(google.protobuf.Empty) returns(ListResponse) {
+        option (google.api.http) = {
+            get: "/auth/v1/admin/users"
+        };
+    }
+
+    // Create user
+    rpc Create(CreateRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/auth/v1/admin/users"
+            body: "*"
+        };
+    }
+
+    // Update user by user id
+    rpc Update(UpdateRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/auth/v1/admin/users"
+            body: "*"
+        };
+    }
+
+    // Delete user by user id
+    rpc Delete(DeleteRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/auth/v1/admin/users"
+        };
+    }
+}
+
+message User {
+    uint64 id = 1;
+    string name = 2;
+    string login = 3;
+}
+
+message SignInRequest {
+    string login = 1;
+    string password = 2;
+}
+
+message SignInResponse {
+    string token = 1;
+    User user = 2;
+}
+
+message UserRequest {
+    uint64 id = 1;
+}
+
+message UserResponse {
+    User user = 1;
+}
+
+message ListResponse {
+    repeated User users = 1;
+}
+
+message CreateRequest {
+    string login = 1;
+    string password = 2;
+    string name = 3;
+}
+
+message UpdateRequest {
+    User user = 1;
+}
+
+message DeleteRequest {
+    uint64 id = 1;
+}

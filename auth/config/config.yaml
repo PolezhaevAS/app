@@ -1,0 +1,19 @@
+grpc:
+  network: tcp
+  bind: :7071
+
+token:
+  secret: "123213213211"
+  algorithm: HS256
+
+# postgresql database configuration.
+db:
+  driver: 'postgres'
+  url: 'postgresql://postgres:qwerty@postgres-users:5432/users?sslmode=disable'
+
+broker:
+  url: "amqp://guest:guest@rabbitmq:5672/"
+
+auth:
+  ttl: 10
+  salt: "dfeqfejcq"  

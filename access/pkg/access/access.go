@@ -1,7 +1,6 @@
 package access
 
 import (
-	"app/access/internal/service"
 	access "app/access/pkg/access/gen"
 	"app/internal/broker"
 
@@ -10,13 +9,11 @@ import (
 
 type Client struct {
 	b *broker.RabbitMQ
-	s service.Service
 }
 
-func New(b *broker.RabbitMQ, s service.Service) *Client {
+func New(b *broker.RabbitMQ) *Client {
 	return &Client{
 		b: b,
-		s: s,
 	}
 }
 

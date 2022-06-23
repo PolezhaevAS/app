@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+
+  access:
+    container_name: access
+    build: 
+      context: .
+      dockerfile: ./docker/access/Dockerfile
+    ports:
+      - 7070:7070
+    depends_on:
+      - postgres-users
+      - rabbitmq
+    
+  
+  users:
+    container_name: users
+    build:
+      context: .
+      dockerfile: ./docker/auth/Dockerfile
+    ports: 
+      - 7071:7071
+    depends_on:
+      - postgres-users
+      - rabbitmq
+  
