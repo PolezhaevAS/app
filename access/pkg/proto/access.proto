@@ -7,13 +7,6 @@ import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 
 service Access {
-    // Get user accesses by user id
-    rpc UserAccesses(UserAccessesRequest) returns (UserAccessesResponse) {
-        option (google.api.http) = {
-            get: "/access/v1/user_accesses"
-        };
-    }
-
     // Get list groups
     rpc List(google.protobuf.Empty) returns(ListResponse) {
         option (google.api.http) = {
@@ -121,18 +114,6 @@ message Group {
 message AccessUser {
     string service = 1;
     string method = 2;
-}
-
-// 
-message UserAccessesRequest {
-    // User identificator
-    uint64 id = 1;
-}
-
-//
-message UserAccessesResponse {
-    // List groups
-    repeated AccessUser access = 1;
 }
 
 //

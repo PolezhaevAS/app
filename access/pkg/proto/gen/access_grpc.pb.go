@@ -19,8 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AccessClient interface {
-	// Get user accesses by user id
-	UserAccesses(ctx context.Context, in *UserAccessesRequest, opts ...grpc.CallOption) (*UserAccessesResponse, error)
 	// Get list groups
 	List(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ListResponse, error)
 	// Get group
@@ -51,15 +49,6 @@ type accessClient struct {
 
 func NewAccessClient(cc grpc.ClientConnInterface) AccessClient {
 	return &accessClient{cc}
-}
-
-func (c *accessClient) UserAccesses(ctx context.Context, in *UserAccessesRequest, opts ...grpc.CallOption) (*UserAccessesResponse, error) {
-	out := new(UserAccessesResponse)
-	err := c.cc.Invoke(ctx, "/access.grpc.Access/UserAccesses", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *accessClient) List(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ListResponse, error) {
@@ -165,8 +154,6 @@ func (c *accessClient) RemoveMethod(ctx context.Context, in *RemoveMethodRequest
 // All implementations must embed UnimplementedAccessServer
 // for forward compatibility
 type AccessServer interface {
-	// Get user accesses by user id
-	UserAccesses(context.Context, *UserAccessesRequest) (*UserAccessesResponse, error)
 	// Get list groups
 	List(context.Context, *empty.Empty) (*ListResponse, error)
 	// Get group
@@ -196,9 +183,6 @@ type AccessServer interface {
 type UnimplementedAccessServer struct {
 }
 
-func (UnimplementedAccessServer) UserAccesses(context.Context, *UserAccessesRequest) (*UserAccessesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UserAccesses not implemented")
-}
 func (UnimplementedAccessServer) List(context.Context, *empty.Empty) (*ListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
@@ -243,24 +227,6 @@ type UnsafeAccessServer interface {
 
 func RegisterAccessServer(s grpc.ServiceRegistrar, srv AccessServer) {
 	s.RegisterService(&Access_ServiceDesc, srv)
-}
-
-func _Access_UserAccesses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserAccessesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccessServer).UserAccesses(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/access.grpc.Access/UserAccesses",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccessServer).UserAccesses(ctx, req.(*UserAccessesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Access_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -468,10 +434,6 @@ var Access_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "access.grpc.Access",
 	HandlerType: (*AccessServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "UserAccesses",
-			Handler:    _Access_UserAccesses_Handler,
-		},
 		{
 			MethodName: "List",
 			Handler:    _Access_List_Handler,

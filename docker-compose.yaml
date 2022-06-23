@@ -24,6 +24,21 @@ services:
     volumes:
       - .:/docker-entrypoint-initdb.d
     command: -c "log_statement=all"
+  
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.9-management
+    hostname: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+      - rabbitmq_log:/var/log/rabbitmq/
+    networks:
+      - rabbitmq_net
+    logging:
+      driver: none
 
   access:
     container_name: access
@@ -34,6 +49,16 @@ services:
       - 7070:7070
     depends_on:
       - postgres-users
+      - rabbitmq
+
+  
 
 volumes:
-  access: {}
+  access: 
+  rabbitmq_data:
+  rabbitmq_log:
+
+networks:
+  rabbitmq_net:
+    driver: bridge
+  

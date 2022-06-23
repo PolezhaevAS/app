@@ -1,8 +1,8 @@
 package config
 
 import (
+	"app/internal/broker"
 	"app/internal/server"
-	"app/internal/service"
 	db "app/internal/sql"
 	"app/internal/token"
 	"strings"
@@ -17,20 +17,20 @@ func NewAccessConfig() *AccessConfig {
 }
 
 type Config struct {
-	Service      *service.Config `yaml:"service_desc" mapstructure:"service_desc"`
-	GRPC         *server.Config  `yaml:"grpc" mapstructure:"grpc"`
-	Token        *token.Config   `yaml:"token" mapstructure:"token"`
-	DB           *db.Config      `yaml:"db" mapstructure:"db"`
-	AccessConfig *AccessConfig   `yaml:"access" mapstructure:"access"`
+	GRPC         *server.Config `yaml:"grpc" mapstructure:"grpc"`
+	Token        *token.Config  `yaml:"token" mapstructure:"token"`
+	DB           *db.Config     `yaml:"db" mapstructure:"db"`
+	Broker       *broker.Config `yaml:"broker" mapstructure:"broker"`
+	AccessConfig *AccessConfig  `yaml:"access" mapstructure:"access"`
 }
 
 // New Default configuration.
 func New() *Config {
 	return &Config{
-		Service:      service.NewConfig(),
 		GRPC:         server.NewConfig(),
 		Token:        token.NewConfig(),
 		DB:           db.NewConfig(),
+		Broker:       broker.NewConfig(),
 		AccessConfig: NewAccessConfig(),
 	}
 }

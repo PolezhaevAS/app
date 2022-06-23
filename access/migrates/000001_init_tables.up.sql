@@ -3,7 +3,7 @@
 
 
 -- Create new schema
-CREATE SCHEMA "ACCESS"
+CREATE SCHEMA "access"
 
 -- Create table groups. This table saved groups by creating users.
 CREATE TABLE IF NOT EXISTS "access"."groups" (
