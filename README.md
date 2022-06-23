@@ -1,10 +1,10 @@
 # TODO LIST
 
 ## Access service
-    - [ ] Refactor models
-    - [ ] Refactor server methods
-    - [ ] Refactor service methods
-    - [ ] Add return grpc errors
-    - [ ] Admin user?
-    - [ ] Add tests
-    - [x] Add broker
+- [x] Все ошибки в сервис
+- [x] Заменить ошибки на grpc.Status
+- [x] Валидация входящих данных
+- [x] Рефактор моделей
+- [ ] Удалять записи или помечать как удаленные, чтобы можно было восстановить? (Добавление поля isDeleted)
+- [ ] Добавить тесты
+- [ ] Рефактор брокера. Добавить возвращаемые ошибки.
