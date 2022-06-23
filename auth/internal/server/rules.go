@@ -11,5 +11,6 @@ func Rules(s *grpc.ServiceDesc) *service.Service {
 
 	// For example
 	// service.AddOpenApi("List")
+	service.AddOpenApi("SignIn")
 	return service
 }

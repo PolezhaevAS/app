@@ -29,8 +29,8 @@ func UserFromProto(user *pb.User) *User {
 	}
 }
 
-func (u *User) PasswordSHA1(pass, salt string) {
+func PasswordSHA1(pass, salt string) string {
 	hash := sha1.New()
 	hash.Write([]byte(pass))
-	u.Password = fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
