@@ -6,6 +6,7 @@ import (
 	db "app/access/internal/database"
 	server_access "app/access/internal/server"
 	service_access "app/access/internal/service"
+	broker_pb "app/access/pkg/access/gen"
 	pb "app/access/pkg/proto/gen"
 	"app/internal/broker"
 	grpc_server "app/internal/server"
@@ -49,7 +50,7 @@ func main() {
 	log.Println("Start app")
 
 	serviceDesc := server_access.Rules(pb.Access_ServiceDesc)
-	broker, err := broker.New(pb.Access_ServiceDesc, cfg.Broker)
+	broker, err := broker.New(broker_pb.AccessBroker_ServiceDesc, cfg.Broker)
 	if err != nil {
 		log.Fatal(err)
 	}

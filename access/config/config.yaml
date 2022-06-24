@@ -12,7 +12,7 @@ db:
   url: 'postgresql://postgres:qwerty@postgres-users:5432/access?sslmode=disable'
 
 broker:
-  url: "amqp://guest:guest@localhost:5672/"
+  url: "amqp://guest:guest@rabbitmq:5672/"
 
 access:
   

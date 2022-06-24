@@ -2,6 +2,7 @@ package main
 
 import (
 	"app/access/pkg/access"
+	pb_access "app/access/pkg/access/gen"
 	"app/auth/internal/config"
 	db "app/auth/internal/database"
 	"app/auth/internal/models"
@@ -50,7 +51,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	broker, err := broker.New(pb.Auth_ServiceDesc, cfg.Broker)
+	broker, err := broker.New(pb_access.AccessBroker_ServiceDesc, cfg.Broker)
 	if err != nil {
 		log.Fatal(err)
 	}
