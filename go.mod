@@ -12,12 +12,13 @@ require (
 	github.com/streadway/amqp v1.0.0
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
 	google.golang.org/grpc v1.47.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.0
 )
 
 require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/googleapis/googleapis v0.0.0-20220623000119-8a251f5225b7 // indirect
+	github.com/golang/glog v1.0.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

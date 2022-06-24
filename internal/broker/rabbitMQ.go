@@ -2,7 +2,6 @@ package broker
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 
 	"github.com/streadway/amqp"
@@ -61,13 +60,16 @@ func (r *RabbitMQ) Close() {
 }
 
 func (r *RabbitMQ) QueueDeclare(name string) (amqp.Queue, error) {
+	if name != "" {
+		name = r.queueName(name)
+	}
 	q, err := r.ch.QueueDeclare(
-		r.queueName(name), // name
-		false,             // durable
-		false,             // delete when unused
-		false,             // exclusive
-		false,             // no-wait
-		nil,               // arguments
+		name,  // name
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
 	)
 	return q, err
 }
@@ -166,10 +168,13 @@ func (r *RabbitMQ) RPC(routeKey string, body []byte, replyTo string) ([]byte, er
 		return nil, err
 	}
 
+	defer r.DeleteQueue(q)
+
 	msgs, err := r.replyConsume(q)
 	if err != nil {
 		return nil, err
 	}
+
 	corrId := randomString(32)
 	err = r.Publish(routeKey, body, corrId, q.Name)
 	if err != nil {
@@ -177,13 +182,21 @@ func (r *RabbitMQ) RPC(routeKey string, body []byte, replyTo string) ([]byte, er
 	}
 
 	for d := range msgs {
-		log.Println("Msg", d.Body)
 		if corrId == d.CorrelationId {
 			return d.Body, nil
 		}
 	}
 
 	return nil, nil
+}
+
+func (r *RabbitMQ) DeleteQueue(q amqp.Queue) error {
+	_, err := r.ch.QueueDelete(q.Name, false, false, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func randomString(l int) string {

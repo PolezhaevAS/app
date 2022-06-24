@@ -12,7 +12,9 @@ services:
       - 9000:9000
     volumes:
       - ./docker/envoy:/envoy
-    entrypoint: ["/entry.sh", "envoy", "-c", "/envoy/envoy.yaml"]    
+    entrypoint: ["/entry.sh", "envoy", "-c", "/envoy/envoy.yaml"]  
+    networks:
+      - rabbitmq_go_net
 
 
   postgres-users:
@@ -24,6 +26,8 @@ services:
     volumes:
       - .:/docker-entrypoint-initdb.d
     command: -c "log_statement=all"
+    networks:
+      - rabbitmq_go_net
   
   rabbitmq:
     container_name: rabbitmq
@@ -35,18 +39,16 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/
       - rabbitmq_log:/var/log/rabbitmq/
-    networks:
-      - rabbitmq_net
     logging:
       driver: none
+    networks:
+      - rabbitmq_go_net
 
-  
+networks:
+  rabbitmq_go_net:
+    driver: bridge
 
 volumes:
   rabbitmq_data:
   rabbitmq_log:
-
-networks:
-  rabbitmq_net:
-    driver: bridge
   

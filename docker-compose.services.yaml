@@ -12,10 +12,12 @@ services:
     depends_on:
       - postgres-users
       - rabbitmq
+    networks:
+      - rabbitmq_go_net
     
   
-  users:
-    container_name: users
+  auth:
+    container_name: auth
     build:
       context: .
       dockerfile: ./docker/auth/Dockerfile
@@ -24,4 +26,9 @@ services:
     depends_on:
       - postgres-users
       - rabbitmq
-  
+    networks:
+      - rabbitmq_go_net
+
+networks:
+  rabbitmq_go_net:
+    driver: bridge
