@@ -1,57 +1,85 @@
+!ignore dynamic_sockets:
+- &admin_addr {address: 0.0.0.0, port_value: 9901}
+- &http_addr {address: 0.0.0.0, port_value: 8080}
+# auth service
+- &auth_listener {address: 0.0.0.0, port_value: 8081}
+- &auth_cluster {address: auth, port_value: 7071}
+# access service
+- &access_listener {address: 0.0.0.0, port_value: 8082}
+- &access_cluster {address: access, port_value: 7070}
+
 admin:
   address:
-    socket_address: {address: 0.0.0.0, port_value: 9901}
+    socket_address: *admin_addr
 
 static_resources:
   listeners:
-  - name: grpc-listener
-    address:
-      socket_address: {address: 0.0.0.0, port_value: 8080}
-    filter_chains:
-    - filters:
-      - name: envoy.filters.network.http_connection_manager
-        typed_config:
-          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-          stat_prefix: grpc_json
-          codec_type: AUTO
-          route_config:
-            name: local_route
-            virtual_hosts:
-            - name: local_service
-              domains: ["*"]
-              routes:
-              # NOTE: by default, matching happens based on the gRPC route, and not on the incoming request path.
-              # Reference: https://envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_json_transcoder_filter#route-configs-for-transcoded-requests
-              - match: {prefix: "/access.grpc.Access"}
-                route: {cluster: access, timeout: 60s}
-              - match: {prefix: "/auth.grpc.Auth"}
-                route: {cluster: auth, timeout: 60s}
-          http_filters:
-          - name: envoy.filters.http.grpc_json_transcoder
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
-              proto_descriptor: "/envoy/descriptors/access.pb"
-              services: ["access.grpc.Access"]
-              convert_grpc_status: true
-              print_options:
-                add_whitespace: true
-                always_print_primitive_fields: true
-                always_print_enums_as_ints: false
-                preserve_proto_field_names: false
-          - name: envoy.filters.http.grpc_json_transcoder
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
-              proto_descriptor: "/envoy/descriptors/auth.pb"
-              services: ["auth.grpc.Auth"]
-              convert_grpc_status: true
-              print_options:
-                add_whitespace: true
-                always_print_primitive_fields: true
-                always_print_enums_as_ints: false
-                preserve_proto_field_names: false
-          - name: envoy.filters.http.router
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+    # grpc listener for auth cluster
+    - name: auth_listener
+      address:
+        socket_address: *auth_listener
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                stat_prefix: destination
+                cluster: auth
+    
+    # grpc listener for access cluster
+    - name: access_listener
+      address:
+        socket_address: *access_listener
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                stat_prefix: destination
+                cluster: auth
+
+    # http listener 
+    - name: http_listener
+      address:
+        socket_address: *http_addr
+      filter_chains:
+      - filters:
+        - name: envoy.filters.network.http_connection_manager
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            stat_prefix: grpc_json
+            codec_type: AUTO
+            route_config:
+              name: local_route
+              virtual_hosts:
+              - name: local_service
+                domains: ["*"]
+                routes:
+                # NOTE: by default, matching happens based on the gRPC route, and not on the incoming request path.
+                # Reference: https://envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_json_transcoder_filter#route-configs-for-transcoded-requests
+                - match: {prefix: "/access.grpc.Access"}
+                  route: {cluster: access, timeout: 60s}
+                - match: {prefix: "/auth.grpc.Auth"}
+                  route: {cluster: auth, timeout: 60s}
+                cors:
+                  allow_origin_string_match:
+                    - prefix: "*"
+                  allow_methods: GET, PUT, DELETE, POST, OPTIONS
+                  allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
+                  max_age: "1728000"
+                  expose_headers: custom-header-1,grpc-status,grpc-message
+
+            http_filters:
+            - name: envoy.filters.http.grpc_web
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+            - name: envoy.filters.http.cors
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+            - name: envoy.filters.http.router
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
   clusters:
     - name: access
@@ -70,12 +98,8 @@ static_resources:
         - lb_endpoints:
           - endpoint:
               address:
-                socket_address:
-                  # WARNING: "docker.for.mac.localhost" has been deprecated from Docker v18.03.0.
-                  # If you're running an older version of Docker, please use "docker.for.mac.localhost" instead.
-                  # Reference: https://docs.docker.com/docker-for-mac/release-notes/#docker-community-edition-18030-ce-mac59-2018-03-26
-                  address: access
-                  port_value: 7070
+                socket_address: *access_cluster
+
     - name: auth
       connect_timeout: 1.25s
       type: LOGICAL_DNS
@@ -92,9 +116,5 @@ static_resources:
         - lb_endpoints:
           - endpoint:
               address:
-                socket_address:
-                  # WARNING: "docker.for.mac.localhost" has been deprecated from Docker v18.03.0.
-                  # If you're running an older version of Docker, please use "docker.for.mac.localhost" instead.
-                  # Reference: https://docs.docker.com/docker-for-mac/release-notes/#docker-community-edition-18030-ce-mac59-2018-03-26
-                  address: auth
-                  port_value: 7071
+                socket_address: *auth_cluster
+
