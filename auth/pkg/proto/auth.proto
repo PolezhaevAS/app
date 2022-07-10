@@ -117,10 +117,6 @@ message User {
     string login = 3;
     // Email
     string email = 4;
-    // is admin
-    bool is_admin = 5;
-    // avaliable services map<Service, Methods>
-    map<string, Methods> access = 6;
 }
 
 // Methods name in service for access
@@ -136,6 +132,8 @@ message SignInRequest {
 message SignInResponse {
     string token = 1;
     User user = 2;
+    // avaliable services map<Service, Methods>
+    map<string, Methods> access = 6;
 }
 
 message ListRequest {

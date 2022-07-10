@@ -51,10 +51,6 @@ type AuthClient interface {
 	// Request:
 	// Response: stream action, user
 	UpdateStream(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (Auth_UpdateStreamClient, error)
-	// Change image
-	// Request: new base64 image
-	// Response: error
-	ChangeUserImage(ctx context.Context, in *ChangeUserImageRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Change name, login, email
 	// Request: new name, login, email
 	// Response: error
@@ -159,15 +155,6 @@ func (x *authUpdateStreamClient) Recv() (*UpdateStreamResponse, error) {
 	return m, nil
 }
 
-func (c *authClient) ChangeUserImage(ctx context.Context, in *ChangeUserImageRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/auth.grpc.Auth/ChangeUserImage", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *authClient) ChangeUser(ctx context.Context, in *ChangeUserRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/auth.grpc.Auth/ChangeUser", in, out, opts...)
@@ -218,10 +205,6 @@ type AuthServer interface {
 	// Request:
 	// Response: stream action, user
 	UpdateStream(*empty.Empty, Auth_UpdateStreamServer) error
-	// Change image
-	// Request: new base64 image
-	// Response: error
-	ChangeUserImage(context.Context, *ChangeUserImageRequest) (*empty.Empty, error)
 	// Change name, login, email
 	// Request: new name, login, email
 	// Response: error
@@ -257,9 +240,6 @@ func (UnimplementedAuthServer) ResetPassword(context.Context, *ResetPasswordRequ
 }
 func (UnimplementedAuthServer) UpdateStream(*empty.Empty, Auth_UpdateStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method UpdateStream not implemented")
-}
-func (UnimplementedAuthServer) ChangeUserImage(context.Context, *ChangeUserImageRequest) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChangeUserImage not implemented")
 }
 func (UnimplementedAuthServer) ChangeUser(context.Context, *ChangeUserRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeUser not implemented")
@@ -409,24 +389,6 @@ func (x *authUpdateStreamServer) Send(m *UpdateStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Auth_ChangeUserImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChangeUserImageRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServer).ChangeUserImage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/auth.grpc.Auth/ChangeUserImage",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).ChangeUserImage(ctx, req.(*ChangeUserImageRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Auth_ChangeUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ChangeUserRequest)
 	if err := dec(in); err != nil {
@@ -493,10 +455,6 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResetPassword",
 			Handler:    _Auth_ResetPassword_Handler,
-		},
-		{
-			MethodName: "ChangeUserImage",
-			Handler:    _Auth_ChangeUserImage_Handler,
 		},
 		{
 			MethodName: "ChangeUser",

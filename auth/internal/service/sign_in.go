@@ -9,7 +9,7 @@ import (
 
 func (s *Auth) SignIn(ctx context.Context,
 	login, password string) (token string,
-	user models.User, err error) {
+	user models.User, access map[string][]string, err error) {
 	if s.cfg.AuthConfig.AdminName == login &&
 		s.cfg.AuthConfig.AdminPassword == password {
 		return s.signInAdmin(login)
@@ -19,9 +19,8 @@ func (s *Auth) SignIn(ctx context.Context,
 }
 
 func (s *Auth) signInAdmin(login string) (tokenString string,
-	user models.User, err error) {
+	user models.User, access map[string][]string, err error) {
 	services := service.Services()
-	access := make(map[string][]string)
 
 	for _, service := range services {
 		var methods []string
@@ -44,25 +43,22 @@ func (s *Auth) signInAdmin(login string) (tokenString string,
 	}
 
 	return tokenString, models.User{
-		ID:     0,
-		Name:   login,
-		Login:  login,
-		Email:  "",
-		Access: access,
+		ID:    0,
+		Name:  login,
+		Login: login,
+		Email: "",
 	}, nil
 }
 
 func (s *Auth) signInUser(ctx context.Context,
 	login, password string) (tokenString string,
-	user models.User, err error) {
+	user models.User, access map[string][]string, err error) {
 	pass := s.getPasswordSHA1(password)
 	user, err = s.db.SignIn(ctx, login, pass)
 	if err != nil {
 		return
 	}
 
-	access := make(map[string][]string)
-	user.Access = access
 	// accessServices, err := s.access.UserAccess(
 	// 	&access_pb.UserAccessRequest{Id: user.ID})
 	// if err != nil {

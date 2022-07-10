@@ -22,14 +22,20 @@ func New(s service.Service) *Server {
 
 func (s *Server) SignIn(ctx context.Context,
 	req *pb.SignInRequest) (*pb.SignInResponse, error) {
-	token, user, err := s.s.
+	token, user, access, err := s.s.
 		SignIn(ctx, req.GetLogin(), req.GetPassword())
 	if err != nil {
 		return &pb.SignInResponse{}, status.Error(codes.Aborted, err.Error())
 	}
 
+	var userAccess map[string]*pb.Methods
+	for service, methods := range access {
+		userAccess[service] = &pb.Methods{Name: methods}
+	}
+
 	return &pb.SignInResponse{
-		Token: token,
-		User:  user.Proto(),
+		Token:  token,
+		User:   user.Proto(),
+		Access: userAccess,
 	}, nil
 }

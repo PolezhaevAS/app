@@ -20,7 +20,8 @@ type Service interface {
 	// Return token and user model or error
 	SignIn(ctx context.Context,
 		login, password string) (token string,
-		user models.User, err error)
+		user models.User, access map[string][]string,
+		err error)
 
 	// List -
 	// request list users by last user id
