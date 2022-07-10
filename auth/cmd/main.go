@@ -1,25 +1,25 @@
 package main
 
 import (
-	"app/access/pkg/access"
-	pb_access "app/access/pkg/access/gen"
-	"app/auth/internal/config"
-	db "app/auth/internal/database"
-	"app/auth/internal/models"
-	server_auth "app/auth/internal/server"
-	service_auth "app/auth/internal/service"
-	pb "app/auth/pkg/proto/gen"
+	"log"
+
 	"app/internal/broker"
 	grpc_server "app/internal/server"
 	grpc_auth "app/internal/server/auth"
 	"app/internal/token"
-	"context"
-	"log"
+
+	"app/access/pkg/access"
+	pb_access "app/access/pkg/access/gen"
+
+	"app/auth/internal/config"
+	db "app/auth/internal/database"
+	server_auth "app/auth/internal/server"
+	service_auth "app/auth/internal/service"
+	pb "app/auth/pkg/proto/gen"
 )
 
 func main() {
 	var (
-		ctx      = context.Background()
 		cfg      = config.New().Load()
 		err      error
 		jwt      *token.Source
@@ -27,17 +27,13 @@ func main() {
 		grpc     *grpc_server.Server
 		grpcAuth *grpc_auth.Auth
 		server   *server_auth.Server
-		service  *service_auth.Auth
+		service  service_auth.Service
 	)
 
 	if database, err = db.New(cfg.DB); err != nil {
 		log.Fatal(err)
 	}
 	defer database.Close()
-
-	if _, err := database.Users().SignIn(ctx, "admin", models.PasswordSHA1("admin", cfg.AuthConfig.Salt)); err != nil {
-		database.Users().Create(ctx, "admin", "admin", models.PasswordSHA1("admin", cfg.AuthConfig.Salt))
-	}
 
 	serviceDesc := server_auth.Rules(pb.Auth_ServiceDesc)
 
@@ -46,7 +42,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	grpcAuth = grpc_auth.New(jwt, serviceDesc, "admin")
+	grpcAuth = grpc_auth.New(jwt, serviceDesc)
 	if err != nil {
 		log.Fatal(err)
 	}

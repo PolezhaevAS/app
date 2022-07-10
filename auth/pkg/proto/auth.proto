@@ -6,56 +6,122 @@ option go_package = "app/auth/pkg/proto;pb";
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 
+// Auth service - 
+// used for authorization users and work with users database
 service Auth {
+
     // Sign in by login and password
+    // Request: login, password
+    // Response: token, user info
     rpc SignIn(SignInRequest) returns(SignInResponse) {
         option (google.api.http) = {
-            get: "/auth/v1/sign_in"
+            get: "/v1/auth/sign_in"
+        };
+    }
+
+    // Admin requests
+    // ----->
+
+    // Get list users
+    // Request: last id, limit
+    // Response: list of users where id > last id and count rows = limit
+    rpc List(ListRequest) returns(ListResponse) {
+        option (google.api.http) = {
+            get: "/v1/auth/admin/users"
         };
     }
 
     // Get user info by user id
+    // Request: user id
+    // Response: user
     rpc User(UserRequest) returns(UserResponse) {
         option (google.api.http) = {
-            get: "/auth/v1/admin/users/user"
+            get: "/v1/auth/admin/users/user"
         };
     }
 
-    // Get list users
-    rpc List(google.protobuf.Empty) returns(ListResponse) {
-        option (google.api.http) = {
-            get: "/auth/v1/admin/users"
-        };
-    }
-
-    // Create user
+    // Create new user
+    // Request: login, password
+    // Response: error
     rpc Create(CreateRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/auth/v1/admin/users"
-            body: "*"
-        };
-    }
-
-    // Update user by user id
-    rpc Update(UpdateRequest) returns(google.protobuf.Empty) {
-        option (google.api.http) = {
-            put: "/auth/v1/admin/users"
+            post: "/v1/auth/admin/users"
             body: "*"
         };
     }
 
     // Delete user by user id
+    // Request: user id
+    // Response: error
     rpc Delete(DeleteRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            delete: "/auth/v1/admin/users"
+            delete: "/v1/auth/admin/users"
         };
     }
+
+    // Reset user password by user id
+    // Request: user id, new password
+    // Response: error
+    rpc ResetPassword(ResetPasswordRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/auth/admin/reset_password"
+            body: "*" 
+        };
+    }
+
+    // Stream update users
+    // Request: 
+    // Response: stream action, user
+    rpc UpdateStream(google.protobuf.Empty) returns(stream UpdateStreamResponse) {
+        option (google.api.http) = {
+            get: "/v1/auth/admin/update_stream"
+        };
+    }
+
+    // <-----
+
+    // User requests
+    // All info about user in claims
+    // ----->
+
+    // Change name, login, email
+    // Request: new name, login, email
+    // Response: error
+    rpc ChangeUser(ChangeUserRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/auth/user"
+            body: "*"
+        };
+    }
+
+    // Change password
+    // Request: new password
+    // Response: error
+    rpc ChangeUserPassword(ChangeUserPasswordRequest) returns(google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/auth/user/password"
+            body: "*"
+        };
+    }
+
+    // <-----
 }
 
+// Model user
 message User {
+    // Identificator
     uint64 id = 1;
+    // Name 
     string name = 2;
+    // Login 
     string login = 3;
+    // Email
+    string email = 4;
+}
+
+// Methods name in service for access
+message Methods {
+    repeated string name = 1;
 }
 
 message SignInRequest {
@@ -66,6 +132,17 @@ message SignInRequest {
 message SignInResponse {
     string token = 1;
     User user = 2;
+    // avaliable services map<Service, Methods>
+    map<string, Methods> access = 6;
+}
+
+message ListRequest {
+    uint64 last_id = 1;
+    uint64 limit = 2;
+}
+
+message ListResponse {
+    repeated User users = 1;
 }
 
 message UserRequest {
@@ -76,20 +153,37 @@ message UserResponse {
     User user = 1;
 }
 
-message ListResponse {
-    repeated User users = 1;
-}
-
 message CreateRequest {
     string login = 1;
     string password = 2;
-    string name = 3;
-}
-
-message UpdateRequest {
-    User user = 1;
 }
 
 message DeleteRequest {
     uint64 id = 1;
+}
+
+message ResetPasswordRequest {
+    string new_password = 1;
+}
+
+message UpdateStreamResponse {
+    enum Action {
+        ADD = 0;
+        UPDATE = 1;
+        DELETE = 2;
+    }
+
+    Action action = 1;
+    User user = 2;
+}
+
+message ChangeUserRequest {
+    string name = 1;
+    string login = 2;
+    string email = 3;
+}
+
+message ChangeUserPasswordRequest {
+    string old_password = 1;
+    string new_password = 2;
 }

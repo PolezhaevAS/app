@@ -22,15 +22,12 @@ var (
 type Auth struct {
 	m *token.Source
 	s *service.Service
-	// TODO: need fix
-	adminLogin string
 }
 
-func New(m *token.Source, s *service.Service, admin string) *Auth {
+func New(m *token.Source, s *service.Service) *Auth {
 	return &Auth{
-		m:          m,
-		s:          s,
-		adminLogin: admin,
+		m: m,
+		s: s,
 	}
 }
 
@@ -72,12 +69,11 @@ func (a *Auth) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 			return
 		}
 
-		// TODO: need fix
-		if claims.Login == a.adminLogin {
+		if claims.IsAdmin {
 			return handler(ctx, req)
 		}
 
-		if err = claims.Access(a.s.Name(), method); err != nil {
+		if err = claims.CheckAccess(a.s.Name(), method); err != nil {
 			return
 		}
 
@@ -107,12 +103,11 @@ func (a *Auth) StreamServerInterceptor() grpc.StreamServerInterceptor {
 			return
 		}
 
-		// TODO: need fix
-		if claims.Login == a.adminLogin {
+		if claims.IsAdmin {
 			return handler(srv, stream)
 		}
 
-		if err = claims.Access(a.s.Name(), method); err != nil {
+		if err = claims.CheckAccess(a.s.Name(), method); err != nil {
 			return
 		}
 

@@ -60,7 +60,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	grpc_auth = auth.New(jwt, serviceDesc, "admin")
+	grpc_auth = auth.New(jwt, serviceDesc)
 
 	grpc, err = grpc_server.New(cfg.GRPC, grpc_auth)
 	if err != nil {

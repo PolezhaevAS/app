@@ -10,6 +10,7 @@ token:
 db:
   driver: 'postgres'
   url: 'postgresql://postgres:qwerty@postgres-users:5432/users?sslmode=disable'
+  max_limit: 1000
 
 broker:
   url: "amqp://guest:guest@rabbitmq:5672/"
@@ -17,3 +18,5 @@ broker:
 auth:
   ttl: 10
   salt: "dfeqfejcq"  
+  admin_name: ""
+  admin_password: ""

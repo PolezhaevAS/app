@@ -12,10 +12,10 @@ import (
 
 // Services access - map[service][]methods
 type Claims struct {
-	UserId         uint64
-	Login          string
-	ServicesAccess map[string][]string
-	Exp            int64
+	UserID  uint64
+	IsAdmin bool
+	Access  map[string][]string
+	Exp     int64
 }
 
 type claimsContextKey struct{}
@@ -39,15 +39,15 @@ func (c *Claims) Valid(h *jwt.ValidationHelper) error {
 		return status.Error(codes.Unauthenticated, fmt.Sprintf("authorization token expired %v", err.Error()))
 	}
 
-	if c.UserId <= 0 {
+	if c.UserID <= 0 {
 		return status.Error(codes.Unauthenticated, "invalid authorization token: missing user ID in the token")
 	}
 
 	return nil
 }
 
-func (c *Claims) Access(service, method string) error {
-	var methods, ok = c.ServicesAccess[service]
+func (c *Claims) CheckAccess(service, method string) error {
+	var methods, ok = c.Access[service]
 
 	if !ok {
 		return errors.New("no access to service")
