@@ -1,18 +1,21 @@
 package main
 
 import (
+	"log"
+
+	"app/internal/broker"
+	grpc_server "app/internal/server"
+	grpc_auth "app/internal/server/auth"
+	"app/internal/token"
+
 	"app/access/pkg/access"
 	pb_access "app/access/pkg/access/gen"
+
 	"app/auth/internal/config"
 	db "app/auth/internal/database"
 	server_auth "app/auth/internal/server"
 	service_auth "app/auth/internal/service"
 	pb "app/auth/pkg/proto/gen"
-	"app/internal/broker"
-	grpc_server "app/internal/server"
-	grpc_auth "app/internal/server/auth"
-	"app/internal/token"
-	"log"
 )
 
 func main() {
@@ -24,7 +27,7 @@ func main() {
 		grpc     *grpc_server.Server
 		grpcAuth *grpc_auth.Auth
 		server   *server_auth.Server
-		service  *service_auth.Auth
+		service  service_auth.Service
 	)
 
 	if database, err = db.New(cfg.DB); err != nil {
