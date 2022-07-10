@@ -25,9 +25,10 @@ func (s *Auth) ChangeUser(ctx context.Context,
 }
 
 func (s *Auth) ChangeUserPassword(ctx context.Context,
-	oldPass, newPass string) (err error) {
+	oldPass, newPass string, isReset bool) (err error) {
 	claims, _ := token.ClaimsFromCtx(ctx)
-	err = s.db.ChangePassword(ctx, claims.UserID, oldPass, newPass)
+	err = s.db.ChangePassword(ctx, claims.UserID,
+		oldPass, newPass, isReset)
 	if err != nil {
 		return
 	}

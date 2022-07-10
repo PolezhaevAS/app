@@ -20,12 +20,16 @@ func New(s service.Service) *Server {
 	}
 }
 
+func (s *Server) getError(err error) error {
+	return status.Error(codes.Aborted, err.Error())
+}
+
 func (s *Server) SignIn(ctx context.Context,
 	req *pb.SignInRequest) (*pb.SignInResponse, error) {
 	token, user, access, err := s.s.
 		SignIn(ctx, req.GetLogin(), req.GetPassword())
 	if err != nil {
-		return &pb.SignInResponse{}, status.Error(codes.Aborted, err.Error())
+		return &pb.SignInResponse{}, s.getError(err)
 	}
 
 	var userAccess map[string]*pb.Methods

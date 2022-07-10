@@ -47,7 +47,7 @@ func (s *Auth) signInAdmin(login string) (tokenString string,
 		Name:  login,
 		Login: login,
 		Email: "",
-	}, nil
+	}, access, nil
 }
 
 func (s *Auth) signInUser(ctx context.Context,

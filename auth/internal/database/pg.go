@@ -58,7 +58,7 @@ type Users interface {
 	// Return: error or nil
 	ChangePassword(ctx context.Context,
 		userID uint64,
-		oldPassword, newPassword string) error
+		oldPassword, newPassword string, isReset bool) error
 }
 
 type DB struct {

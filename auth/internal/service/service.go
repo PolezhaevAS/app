@@ -43,12 +43,6 @@ type Service interface {
 	// Return error or nil
 	Create(ctx context.Context, login, password string) error
 
-	// Update -
-	// request to update user name, login, email by user id
-	// Return nil or error
-	Update(ctx context.Context,
-		userID uint64, name, login, email string) error
-
 	// Delete -
 	// request to delete user by id.
 	// Return error or nil
@@ -64,7 +58,7 @@ type Service interface {
 	// request to change user password by id from claims.
 	// Return error or nil
 	ChangeUserPassword(ctx context.Context,
-		oldPassword, newPassword string) error
+		oldPassword, newPassword string, isReset bool) error
 }
 
 type Auth struct {

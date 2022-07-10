@@ -128,21 +128,24 @@ func (db *DB) Delete(ctx context.Context,
 }
 
 func (db *DB) ChangePassword(ctx context.Context,
-	id uint64, oldPass, newPass string) (err error) {
-	user, err := db.ByID(ctx, id)
-	if err != nil {
-		return
-	}
+	id uint64, oldPass, newPass string, isReset bool) error {
+	var err error
+	if !isReset {
+		user, err := db.ByID(ctx, id)
+		if err != nil {
+			return err
+		}
 
-	if user.Password != oldPass {
-		return errors.New("wrong old password")
+		if user.Password != oldPass {
+			return errors.New("wrong old password")
+		}
 	}
 
 	_, err = db.ExecQuery(ctx, database.Exec, CHANGE_PASSWORD, nil,
 		id, newPass)
 	if err != nil {
-		return
+		return err
 	}
 
-	return
+	return nil
 }

@@ -37,22 +37,6 @@ func (s *Auth) Create(ctx context.Context,
 	return
 }
 
-func (s *Auth) Update(ctx context.Context, id uint64,
-	name, login, email string) (err error) {
-	user := models.User{
-		ID:    id,
-		Name:  name,
-		Login: login,
-		Email: email,
-	}
-	err = s.db.Update(ctx, user)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
 func (s *Auth) Delete(ctx context.Context, id uint64) (err error) {
 	err = s.db.Delete(ctx, id)
 	if err != nil {
