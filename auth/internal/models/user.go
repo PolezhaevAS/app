@@ -10,14 +10,23 @@ type User struct {
 	Login    string
 	Password string
 	Email    string
+	Access   map[string][]string
 }
 
 func (u *User) Proto() *pb.User {
+
+	access := make(map[string]*pb.Methods)
+
+	for service, methods := range u.Access {
+		access[service] = &pb.Methods{Name: methods}
+	}
+
 	return &pb.User{
-		Id:    u.ID,
-		Name:  u.Name,
-		Login: u.Login,
-		Email: u.Email,
+		Id:     u.ID,
+		Name:   u.Name,
+		Login:  u.Login,
+		Email:  u.Email,
+		Access: access,
 	}
 }
 

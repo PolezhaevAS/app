@@ -5,6 +5,7 @@ import (
 	database "app/internal/sql"
 	"context"
 	"errors"
+	"fmt"
 )
 
 const (
@@ -71,6 +72,9 @@ func (db *DB) SignIn(ctx context.Context,
 
 func (db *DB) List(ctx context.Context,
 	lastID, limit uint64) (users []models.User, err error) {
+	if limit > db.MaxLimit() {
+		return users, fmt.Errorf("max limit is %d", db.MaxLimit())
+	}
 	_, err = db.ExecQuery(ctx, database.Select, LIST, &users,
 		lastID, limit)
 	if err != nil {

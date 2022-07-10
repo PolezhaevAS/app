@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct {
-	Driver string `yaml:"driver" mapstructure:"driver"`
-	URL    string `yaml:"url" mapstructure:"url"`
+	Driver   string `yaml:"driver" mapstructure:"driver"`
+	URL      string `yaml:"url" mapstructure:"url"`
+	MaxLimit uint64 `yaml:"max_limit" mapstructure:"max_limit"`
 }
 
 // NewConfig returns new default database configuration.
@@ -20,7 +21,8 @@ func NewConfig() *Config {
 
 // The Database repsents Database instance.
 type Database struct {
-	Conn *sqlx.DB
+	Conn     *sqlx.DB
+	maxLimit uint64
 }
 
 const (
@@ -45,7 +47,13 @@ func New(cfg *Config) (db *Database, err error) {
 		return nil, err
 	}
 
+	db.maxLimit = cfg.MaxLimit
+
 	return db, nil
+}
+
+func (db *Database) MaxLimit() uint64 {
+	return db.maxLimit
 }
 
 // Close database connection.
