@@ -5,7 +5,6 @@ import (
 	pb_access "app/access/pkg/access/gen"
 	"app/auth/internal/config"
 	db "app/auth/internal/database"
-	"app/auth/internal/models"
 	server_auth "app/auth/internal/server"
 	service_auth "app/auth/internal/service"
 	pb "app/auth/pkg/proto/gen"
@@ -13,13 +12,11 @@ import (
 	grpc_server "app/internal/server"
 	grpc_auth "app/internal/server/auth"
 	"app/internal/token"
-	"context"
 	"log"
 )
 
 func main() {
 	var (
-		ctx      = context.Background()
 		cfg      = config.New().Load()
 		err      error
 		jwt      *token.Source
@@ -35,10 +32,6 @@ func main() {
 	}
 	defer database.Close()
 
-	if _, err := database.Users().SignIn(ctx, "admin", models.PasswordSHA1("admin", cfg.AuthConfig.Salt)); err != nil {
-		database.Users().Create(ctx, "admin", "admin", models.PasswordSHA1("admin", cfg.AuthConfig.Salt))
-	}
-
 	serviceDesc := server_auth.Rules(pb.Auth_ServiceDesc)
 
 	jwt, err = token.New(cfg.Token)
@@ -46,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	grpcAuth = grpc_auth.New(jwt, serviceDesc, "admin")
+	grpcAuth = grpc_auth.New(jwt, serviceDesc)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,23 +1,29 @@
 package db
 
 import (
-	"app/auth/internal/database/queries"
 	"app/auth/internal/models"
 	"context"
-	"database/sql"
+
+	"github.com/jmoiron/sqlx"
+)
+
+var (
+	SIGN_IN = "select id, name, login, email from users.users"
 )
 
 var _ Users = (*UsersRepo)(nil)
 
 type UsersRepo struct {
-	*sql.DB
+	*sqlx.DB
 }
 
-func NewUsersRepo(db *sql.DB) *UsersRepo {
+func NewUsersRepo(db *sqlx.DB) *UsersRepo {
 	return &UsersRepo{db}
 }
 
-func (r *UsersRepo) SignIn(ctx context.Context, login, password string) (*models.User, error) {
+func (r *UsersRepo) SignIn(ctx context.Context,
+	login, password string) (*models.User, error) {
+
 	stmt, err := r.PrepareContext(ctx, queries.SIGN_IN)
 	if err != nil {
 		return nil, err
@@ -25,7 +31,8 @@ func (r *UsersRepo) SignIn(ctx context.Context, login, password string) (*models
 	defer stmt.Close()
 
 	var user models.User
-	err = stmt.QueryRowContext(ctx, login, password).Scan(&user.ID, &user.Name, &user.Login, &user.Password)
+	err = stmt.QueryRowContext(ctx, login, password).
+		Scan(&user.ID, &user.Name, &user.Login, &user.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -33,14 +40,15 @@ func (r *UsersRepo) SignIn(ctx context.Context, login, password string) (*models
 	return &user, nil
 }
 
-func (r *UsersRepo) List(ctx context.Context) ([]*models.User, error) {
+func (r *UsersRepo) List(ctx context.Context,
+	lastID, limit uint64) ([]*models.User, error) {
 	stmt, err := r.PrepareContext(ctx, queries.LIST)
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.QueryContext(ctx)
+	rows, err := stmt.QueryContext(ctx, lastID, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -49,18 +57,26 @@ func (r *UsersRepo) List(ctx context.Context) ([]*models.User, error) {
 	var users []*models.User
 	for rows.Next() {
 		var user models.User
-		err = rows.Scan(&user.ID, &user.Name, &user.Login, &user.Password)
+		err = rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Login,
+			&user.Email,
+		)
+
 		if err != nil {
 			return nil, err
 		}
-
 		users = append(users, &user)
+
 	}
 
 	return users, nil
 }
 
-func (r *UsersRepo) User(ctx context.Context, id uint64) (*models.User, error) {
+func (r *UsersRepo) User(ctx context.Context,
+	id uint64) (*models.User, error) {
+
 	stmt, err := r.PrepareContext(ctx, queries.USER)
 	if err != nil {
 		return nil, err
@@ -68,12 +84,19 @@ func (r *UsersRepo) User(ctx context.Context, id uint64) (*models.User, error) {
 	defer stmt.Close()
 
 	var user models.User
-	err = stmt.QueryRowContext(ctx, id).Scan(&user.ID, &user.Name, &user.Login, &user.Password)
+	err = stmt.QueryRowContext(ctx, id).
+		Scan(&user.ID, &user.Name, &user.Login, &user.Email)
 	if err != nil {
 		return nil, err
 	}
 
 	return &user, nil
+}
+
+func (r *UsersRepo) Create(ctx context.Context,
+	login, password string) error {
+
+	stmt, err := r.PrepareContext(ctx, queries.CREATE)
 }
 
 func (r *UsersRepo) Create(ctx context.Context, name, login, password string) error {

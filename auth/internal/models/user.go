@@ -7,10 +7,10 @@ import (
 )
 
 type User struct {
-	ID       uint64
-	Name     string
-	Login    string
-	Password string
+	ID    uint64
+	Name  string
+	Login string
+	Email string
 }
 
 func (u *User) Proto() *pb.User {

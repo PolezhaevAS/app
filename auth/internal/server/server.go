@@ -21,14 +21,26 @@ func New(s service.Service) *Server {
 }
 
 func (s *Server) SignIn(ctx context.Context, req *pb.SignInRequest) (*pb.SignInResponse, error) {
-	token, user, err := s.s.Token(ctx, req.GetLogin(), req.GetPassword())
+	token, user, access, err := s.s.Token(ctx, req.GetLogin(), req.GetPassword())
 	if err != nil {
 		return nil, err
 	}
 
+	var answerAccess []*pb.ServicesAccess
+	for k, v := range access {
+		answer := &pb.ServicesAccess{Name: k}
+		var methods []*pb.MethodsAccess
+		for _, v := range v {
+			methods = append(methods, &pb.MethodsAccess{Name: v})
+		}
+		answer.Methods = methods
+		answerAccess = append(answerAccess, answer)
+	}
+
 	return &pb.SignInResponse{
-		Token: token,
-		User:  user.Proto(),
+		Token:    token,
+		User:     user.Proto(),
+		Services: answerAccess,
 	}, nil
 }
 

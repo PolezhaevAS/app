@@ -12,8 +12,10 @@ import (
 )
 
 type AuthConfig struct {
-	TTLToken int64  `mapstructure:"ttl"`
-	Salt     string `mapstructure:"salt"`
+	TTLToken      int64  `mapstructure:"ttl"`
+	Salt          string `mapstructure:"salt"`
+	AdminName     string `mapstructure:"admin_name"`
+	AdminPassword string `mapstructure:"admin_password"`
 }
 
 func NewAuthConfig() *AuthConfig {
