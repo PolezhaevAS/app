@@ -1,10 +1,14 @@
 package service
 
 import (
-	"app/auth/internal/models"
+	"context"
+
 	"app/internal/service"
 	"app/internal/token"
-	"context"
+
+	access_pb "app/access/pkg/access/gen"
+
+	"app/auth/internal/models"
 )
 
 func (s *Auth) SignIn(ctx context.Context,
@@ -59,11 +63,15 @@ func (s *Auth) signInUser(ctx context.Context,
 		return
 	}
 
-	// accessServices, err := s.access.UserAccess(
-	// 	&access_pb.UserAccessRequest{Id: user.ID})
-	// if err != nil {
-	// 	return "", nil, err
-	// }
+	answer, err := s.access.UserAccess(
+		&access_pb.UserAccessRequest{Id: user.ID})
+	if err != nil {
+		return
+	}
+
+	for service, methods := range answer.Access {
+		access[service] = methods.Name
+	}
 
 	claims := &token.Claims{
 		UserID:  user.ID,

@@ -1,9 +1,11 @@
 package db
 
 import (
-	"app/auth/internal/models"
-	sqldb "app/internal/sql"
 	"context"
+
+	sqldb "app/internal/sql"
+
+	"app/auth/internal/models"
 )
 
 type Repository interface {

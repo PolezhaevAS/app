@@ -17,7 +17,8 @@ func New(b *broker.RabbitMQ) *Client {
 	}
 }
 
-func (c *Client) UserAccess(req *access.UserAccessRequest) (*access.UserAccessResponse, error) {
+func (c *Client) UserAccess(req *access.UserAccessRequest) (
+	*access.UserAccessResponse, error) {
 	body, err := proto.Marshal(req)
 	if err != nil {
 		return nil, err

@@ -1,9 +1,11 @@
 package service
 
 import (
-	"app/auth/internal/models"
-	"app/internal/token"
 	"context"
+
+	"app/internal/token"
+
+	"app/auth/internal/models"
 )
 
 func (s *Auth) ChangeUser(ctx context.Context,

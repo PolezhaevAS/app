@@ -1,11 +1,13 @@
 package db
 
 import (
-	"app/auth/internal/models"
-	database "app/internal/sql"
 	"context"
 	"errors"
 	"fmt"
+
+	database "app/internal/sql"
+
+	"app/auth/internal/models"
 )
 
 const (

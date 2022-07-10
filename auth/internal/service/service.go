@@ -1,15 +1,18 @@
 package service
 
 import (
-	"app/access/pkg/access"
-	"app/auth/internal/config"
-	db "app/auth/internal/database"
-	"app/auth/internal/models"
-	"app/internal/token"
 	"context"
 	"crypto/sha1"
 	"fmt"
 	"time"
+
+	"app/internal/token"
+
+	"app/access/pkg/access"
+
+	"app/auth/internal/config"
+	db "app/auth/internal/database"
+	"app/auth/internal/models"
 )
 
 // Service - work with users and authorization

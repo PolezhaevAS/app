@@ -1,10 +1,11 @@
 package server
 
 import (
-	pb "app/auth/pkg/proto/gen"
 	"context"
 
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	pb "app/auth/pkg/proto/gen"
 )
 
 func (s *Server) List(ctx context.Context,

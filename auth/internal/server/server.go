@@ -1,12 +1,13 @@
 package server
 
 import (
-	"app/auth/internal/service"
-	pb "app/auth/pkg/proto/gen"
 	"context"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"app/auth/internal/service"
+	pb "app/auth/pkg/proto/gen"
 )
 
 type Server struct {
