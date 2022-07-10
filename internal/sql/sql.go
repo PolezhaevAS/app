@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -23,6 +22,13 @@ func NewConfig() *Config {
 type Database struct {
 	Conn *sqlx.DB
 }
+
+const (
+	Get                 int = 0
+	Select                  = 1
+	Exec                    = 2
+	ExecWithReturningId     = 3
+)
 
 // New initial new database connection with give configurations.
 func New(cfg *Config) (db *Database, err error) {
@@ -53,10 +59,12 @@ func (db *Database) Ping(ctx context.Context) error {
 }
 
 // Exec query -
-// queryName = Get/Select/Exec
+// queryName = Get/Select/Exec/ExecReturnId
 func (db *Database) ExecQuery(ctx context.Context,
-	queryName string, sqlQuery string, dest interface{},
-	args ...interface{}) (result sql.Result, err error) {
+	query int, sqlQuery string,
+	dest interface{}, args ...interface{},
+) (insertID uint64, err error) {
+
 	tx, err := db.Conn.BeginTxx(ctx, nil)
 	if err != nil {
 		return
@@ -68,27 +76,31 @@ func (db *Database) ExecQuery(ctx context.Context,
 		return
 	}
 	defer stmt.Close()
-	switch queryName {
-	case "Get":
+	switch query {
+	case Get:
 		err = stmt.GetContext(ctx, dest, args...)
 		if err != nil {
 			return
 		}
 
-	case "Select":
+	case Select:
 		err = stmt.SelectContext(ctx, dest, args...)
 		if err != nil {
 			return
 		}
-	case "Exec":
-		result, err = stmt.ExecContext(ctx, args...)
+	case Exec:
+		_, err = stmt.ExecContext(ctx, args...)
 		if err != nil {
 			return
 		}
-
+	case ExecWithReturningId:
+		err = stmt.QueryRowContext(ctx, args...).Scan(&insertID)
+		if err != nil {
+			return
+		}
 	default:
-		return result,
-			errors.New("unknown query name. Use: Get, Select or Exec")
+		return insertID,
+			errors.New("unknown query name. Use: Get, Select, Exec, ExecReturnId")
 	}
 
 	if err = tx.Commit(); err != nil {
