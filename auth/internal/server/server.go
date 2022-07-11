@@ -33,7 +33,7 @@ func (s *Server) SignIn(ctx context.Context,
 		return &pb.SignInResponse{}, s.getError(err)
 	}
 
-	var userAccess map[string]*pb.Methods
+	userAccess := make(map[string]*pb.Methods)
 	for service, methods := range access {
 		userAccess[service] = &pb.Methods{Name: methods}
 	}

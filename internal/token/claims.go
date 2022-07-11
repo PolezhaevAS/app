@@ -39,7 +39,7 @@ func (c *Claims) Valid(h *jwt.ValidationHelper) error {
 		return status.Error(codes.Unauthenticated, fmt.Sprintf("authorization token expired %v", err.Error()))
 	}
 
-	if c.UserID <= 0 {
+	if c.UserID < 0 {
 		return status.Error(codes.Unauthenticated, "invalid authorization token: missing user ID in the token")
 	}
 

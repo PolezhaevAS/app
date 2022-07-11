@@ -24,6 +24,7 @@ func (s *Auth) SignIn(ctx context.Context,
 
 func (s *Auth) signInAdmin(login string) (tokenString string,
 	user models.User, access map[string][]string, err error) {
+	access = make(map[string][]string)
 	services := service.Services()
 
 	for _, service := range services {
@@ -57,6 +58,7 @@ func (s *Auth) signInAdmin(login string) (tokenString string,
 func (s *Auth) signInUser(ctx context.Context,
 	login, password string) (tokenString string,
 	user models.User, access map[string][]string, err error) {
+	access = make(map[string][]string)
 	pass := s.getPasswordSHA1(password)
 	user, err = s.db.SignIn(ctx, login, pass)
 	if err != nil {

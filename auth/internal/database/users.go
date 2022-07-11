@@ -34,6 +34,7 @@ const (
 	CREATE = `
 		INSERT INTO users.users(name, login, password)
 		VALUES($1, $1, $2)
+		returning id;
 	`
 
 	// Update query
