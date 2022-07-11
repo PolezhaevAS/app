@@ -1,10 +1,34 @@
 package db
 
 import (
-	"app/access/internal/database/queries"
-	"app/internal/service"
 	"context"
 	"database/sql"
+
+	"app/internal/service"
+	database "app/internal/sql"
+)
+
+const (
+	SERVICE_BY_ID = `
+		SELECT id FROM "access".services WHERE id = $1 
+	`
+
+	SERVICE_ADD = `
+		INSERT INTO "access".services
+		(id, "name")
+		VALUES($1, $2);
+	`
+
+	METHOD_BY_NAME = `
+		SELECT id FROM "access".methods 
+		WHERE service_id = $1 and "name" = $2
+	`
+
+	METHOD_ADD = `
+		INSERT INTO "access".methods
+		(service_id, "name")
+		VALUES($1, $2);
+	`
 )
 
 func (db *DB) FirstStart(ctx context.Context) error {
@@ -18,99 +42,62 @@ func (db *DB) FirstStart(ctx context.Context) error {
 func (db *DB) initServices(ctx context.Context) error {
 	services := service.Services()
 
-	stmt, err := db.Conn.PrepareContext(ctx, queries.SERVICE_ADD)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	for idService, service := range services {
-		id := idService + 1
-		// check for exists
-		exists, err := db.existsService(ctx, id)
+	for pos, service := range services {
+		id := pos + 1
+		err := db.addService(ctx, id, service.ServiceName)
 		if err != nil {
 			return err
 		}
 
-		if !exists {
-			// insert service
-
-			_, err = stmt.ExecContext(ctx, id, service.ServiceName)
-			if err != nil {
-				return err
-			}
-		}
-
-		// insert methods
 		for _, method := range service.Methods {
+			err = db.addMethods(ctx, id, method.MethodName)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
-			exists, err = db.existsMethod(ctx, id, method.MethodName)
+	return nil
+}
+
+func (db *DB) addService(ctx context.Context,
+	id int, name string) error {
+	_, err := db.ExecQuery(ctx, database.Get, SERVICE_BY_ID,
+		nil, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			_, err := db.ExecQuery(ctx, database.Exec,
+				SERVICE_ADD, id, name)
 			if err != nil {
 				return err
 			}
 
-			if !exists {
-				err = db.initMethod(ctx, id, method.MethodName)
-				if err != nil {
-					return err
-				}
-			}
+			return nil
 		}
 
-	}
-
-	return nil
-}
-
-func (db *DB) existsService(ctx context.Context, idService int) (bool, error) {
-	stmt, err := db.Conn.PrepareContext(ctx, queries.SERVICE_EXISTS)
-	if err != nil {
-		return false, err
-	}
-	defer stmt.Close()
-
-	var id int
-	err = stmt.QueryRowContext(ctx, idService).Scan(&id)
-	switch err {
-	case sql.ErrNoRows:
-		return false, nil
-	case nil:
-		return true, nil
-	default:
-		return false, err
-	}
-}
-
-func (db *DB) initMethod(ctx context.Context, idService int, name string) error {
-	stmt, err := db.Conn.PrepareContext(ctx, queries.METHOD_ADD)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, idService, name)
-	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (db *DB) existsMethod(ctx context.Context, idService int, name string) (bool, error) {
-	stmt, err := db.Conn.PrepareContext(ctx, queries.METHOD_EXISTS)
+func (db *DB) addMethods(ctx context.Context,
+	serviceID int, name string) error {
+	_, err := db.ExecQuery(ctx, database.Get, METHOD_BY_NAME,
+		nil, serviceID, name)
 	if err != nil {
-		return false, err
-	}
-	defer stmt.Close()
+		if err == sql.ErrNoRows {
+			_, err := db.ExecQuery(ctx, database.Exec,
+				METHOD_ADD, nil, serviceID, name)
+			if err != nil {
+				return err
+			}
 
-	var id int
-	err = stmt.QueryRowContext(ctx, idService, name).Scan(&id)
-	switch err {
-	case sql.ErrNoRows:
-		return false, nil
-	case nil:
-		return true, nil
-	default:
-		return false, err
+			return nil
+		}
+
+		return err
 	}
+
+	return nil
 }

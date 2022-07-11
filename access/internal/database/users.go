@@ -1,88 +1,88 @@
 package db
 
 import (
-	"app/access/internal/database/queries"
 	"context"
-	"database/sql"
+
+	"github.com/lib/pq"
+
+	database "app/internal/sql"
+)
+
+const (
+	USERS_LIST = `
+		SELECT user_id
+		FROM "access".user_groups WHERE group_id = $1;
+	`
+
+	USERS_ADD = `
+		INSERT INTO "access".user_groups
+		(user_id, group_id)
+		VALUES($1, $2);
+	`
+
+	USERS_REMOVE = `
+		DELETE FROM "access".user_groups
+		WHERE group_id = $1 and user_id = $2;
+	`
+
+	USERS_ACCESS = `
+		select s."name" , array_agg(m."name") methods  from "access".user_groups ug
+		join "access".group_methods gm on ug.group_id = gm.group_id 
+		join "access".methods m on gm.method_id = m.id 
+		join "access".services s on m.service_id = s.id 
+		where user_id  = $1
+		group by s.id 
+	`
 )
 
 var _ Users = (*UsersRepo)(nil)
 
 type UsersRepo struct {
-	*sql.DB
+	*database.Database
 }
 
-func NewUsersRepo(db *sql.DB) *UsersRepo {
+func NewUsersRepo(db *database.Database) *UsersRepo {
 	return &UsersRepo{db}
 }
 
-func (r *UsersRepo) Access(ctx context.Context, id uint64) (map[string][]string, error) {
-
-	stmt, err := r.PrepareContext(ctx, queries.USERS_ACCESS)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.QueryContext(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	access := make(map[string][]string)
-
-	for rows.Next() {
-		var service string
-		var method string
-
-		err := rows.Scan(&service, &method)
-		if err != nil {
-			return nil, err
-		}
-
-		access[service] = append(access[service], method)
-	}
-
-	return access, nil
+type tmpAccess struct {
+	Name    string
+	Methods pq.StringArray
 }
 
-func (r *UsersRepo) Users(ctx context.Context, id uint64) ([]uint64, error) {
-	stmt, err := r.PrepareContext(ctx, queries.USERS_LIST)
+func (r *UsersRepo) Access(ctx context.Context,
+	id uint64) (map[string][]string, error) {
+	var tmpAccess []tmpAccess
+
+	_, err := r.ExecQuery(ctx, database.Select, USERS_ACCESS,
+		&tmpAccess, id)
 	if err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
 
-	rows, err := stmt.QueryContext(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var usersId []uint64
-
-	for rows.Next() {
-		var userId uint64
-		err := rows.Scan(&userId)
-		if err != nil {
-			return nil, err
-		}
-
-		usersId = append(usersId, userId)
+	m := make(map[string][]string)
+	for _, tmp := range tmpAccess {
+		m[tmp.Name] = tmp.Methods
 	}
 
-	return usersId, nil
+	return m, nil
 }
 
-func (r *UsersRepo) Add(ctx context.Context, id uint64, userId uint64) error {
-	stmt, err := r.PrepareContext(ctx, queries.USERS_ADD)
+func (r *UsersRepo) Users(ctx context.Context,
+	groupID uint64) (users []uint64, err error) {
+	_, err = r.ExecQuery(ctx, database.Select, USERS_LIST,
+		&users, groupID)
 	if err != nil {
-		return err
+		return
 	}
-	defer stmt.Close()
 
-	_, err = stmt.ExecContext(ctx, userId, id)
+	return
+}
+
+func (r *UsersRepo) Add(ctx context.Context,
+	id, userID uint64) error {
+	_, err := r.ExecQuery(ctx, database.Exec, USERS_ADD,
+		nil, id, userID)
 	if err != nil {
 		return err
 	}
@@ -90,14 +90,10 @@ func (r *UsersRepo) Add(ctx context.Context, id uint64, userId uint64) error {
 	return nil
 }
 
-func (r *UsersRepo) Remove(ctx context.Context, id uint64, userId uint64) error {
-	stmt, err := r.PrepareContext(ctx, queries.USERS_REMOVE)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, id, userId)
+func (r *UsersRepo) Remove(ctx context.Context,
+	id, userID uint64) error {
+	_, err := r.ExecQuery(ctx, database.Exec, USERS_REMOVE,
+		nil, id, userID)
 	if err != nil {
 		return err
 	}

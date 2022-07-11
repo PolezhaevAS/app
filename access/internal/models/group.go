@@ -3,11 +3,11 @@ package models
 import pb "app/access/pkg/proto/gen"
 
 type Group struct {
-	ID       uint64
-	Name     string
-	Desc     string
-	Users    []uint64
-	Services []*Service
+	ID      uint64
+	Name    string
+	Desc    string
+	Users   []uint64
+	Methods []Method
 }
 
 func (g *Group) Proto() *pb.Group {
@@ -18,11 +18,11 @@ func (g *Group) Proto() *pb.Group {
 		Users: g.Users,
 	}
 
-	var services []*pb.Service
-	for _, s := range g.Services {
-		services = append(services, s.Proto())
+	var methods []*pb.Method
+	for _, m := range g.Methods {
+		methods = append(methods, m.Proto())
 	}
-	group.Services = services
+	group.Methods = methods
 
 	return group
 }
