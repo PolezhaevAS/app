@@ -13,7 +13,7 @@ service Access {
     // Get list groups
     // Request: last id, limit
     // Response: list groups
-    rpc List(google.protobuf.Empty) returns(ListResponse) {
+    rpc List(ListRequest) returns(ListResponse) {
         option (google.api.http) = {
             get: "/v1/access/groups"
         };
@@ -140,6 +140,11 @@ message Group {
 message AccessUser {
     string service = 1;
     string method = 2;
+}
+
+message ListRequest {
+    uint64 id = 1;
+    uint64 limit = 2;
 }
 
 //

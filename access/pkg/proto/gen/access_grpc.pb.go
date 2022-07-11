@@ -26,7 +26,7 @@ type AccessClient interface {
 	// Get list groups
 	// Request: last id, limit
 	// Response: list groups
-	List(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ListResponse, error)
+	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
 	// Get group by id
 	// Request: id
 	// Response: group
@@ -77,7 +77,7 @@ func NewAccessClient(cc grpc.ClientConnInterface) AccessClient {
 	return &accessClient{cc}
 }
 
-func (c *accessClient) List(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ListResponse, error) {
+func (c *accessClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error) {
 	out := new(ListResponse)
 	err := c.cc.Invoke(ctx, "/access.grpc.Access/List", in, out, opts...)
 	if err != nil {
@@ -183,7 +183,7 @@ type AccessServer interface {
 	// Get list groups
 	// Request: last id, limit
 	// Response: list groups
-	List(context.Context, *empty.Empty) (*ListResponse, error)
+	List(context.Context, *ListRequest) (*ListResponse, error)
 	// Get group by id
 	// Request: id
 	// Response: group
@@ -231,7 +231,7 @@ type AccessServer interface {
 type UnimplementedAccessServer struct {
 }
 
-func (UnimplementedAccessServer) List(context.Context, *empty.Empty) (*ListResponse, error) {
+func (UnimplementedAccessServer) List(context.Context, *ListRequest) (*ListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedAccessServer) Group(context.Context, *GroupRequest) (*GroupResponse, error) {
@@ -278,7 +278,7 @@ func RegisterAccessServer(s grpc.ServiceRegistrar, srv AccessServer) {
 }
 
 func _Access_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(ListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ func _Access_List_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: "/access.grpc.Access/List",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccessServer).List(ctx, req.(*empty.Empty))
+		return srv.(AccessServer).List(ctx, req.(*ListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
