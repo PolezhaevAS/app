@@ -48,11 +48,8 @@ func (b *Broker) UserAccess() {
 			continue
 		}
 
-		for s, m := range a {
-			resp.Access = append(resp.Access, &access.Service{
-				Name:    s,
-				Methods: m,
-			})
+		for k, v := range a {
+			resp.Access[k] = &access.Methods{Name: v}
 		}
 
 		err = b.b.ReplyTo(d, resp)

@@ -11,11 +11,6 @@ message Methods {
     repeated string name = 1;
 }
 
-message Service {
-    string name = 1;
-    repeated string methods = 2;
-}
-
 message UserAccessRequest {
     uint64 id = 1;
 }
