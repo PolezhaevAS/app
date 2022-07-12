@@ -1,78 +1,69 @@
 package db
 
 import (
-	"app/access/internal/database/queries"
-	"app/access/internal/models"
 	"context"
-	"database/sql"
+
+	"github.com/jmoiron/sqlx/types"
+
+	"app/access/internal/models"
+	database "app/internal/sql"
+)
+
+const (
+	SERVICE_LIST = `
+		select s.id , s."name" , json_agg(json_build_object('id', m.id, 'name', m."name")) methods from access.methods m 
+		join access.services s on m.service_id = s.id 
+		group by s.id 
+	`
 )
 
 var _ Services = (*ServicesRepo)(nil)
 
 type ServicesRepo struct {
-	*sql.DB
+	*database.Database
 }
 
-func NewServicesRepo(db *sql.DB) *ServicesRepo {
+func NewServicesRepo(db *database.Database) *ServicesRepo {
 	return &ServicesRepo{db}
 }
 
-func (r *ServicesRepo) List(ctx context.Context) ([]*models.Service, error) {
-
-	stmt, err := r.PrepareContext(ctx, queries.SERVICES_LIST)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.QueryContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var services []*models.Service
-	for rows.Next() {
-		var service models.Service
-		err := rows.Scan(&service.ID, &service.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		service.Methods, err = r.methodsList(ctx, service.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		services = append(services, &service)
-	}
-
-	return services, nil
+type tmpService struct {
+	ID      uint64
+	Name    string
+	Methods types.JSONText
 }
 
-func (r *ServicesRepo) methodsList(ctx context.Context, serviceId uint64) ([]*models.Method, error) {
-	stmt, err := r.PrepareContext(ctx, queries.METHODS_LIST)
+func (tmp *tmpService) Service() (s models.Service, err error) {
+	var m []models.Method
+	err = tmp.Methods.Unmarshal(&m)
 	if err != nil {
-		return nil, err
+		return
 	}
-	defer stmt.Close()
 
-	rows, err := stmt.QueryContext(ctx, serviceId)
+	return models.Service{
+		ID:      tmp.ID,
+		Name:    tmp.Name,
+		Methods: m,
+	}, nil
+}
+
+func (r *ServicesRepo) List(ctx context.Context) (
+	services []models.Service, err error) {
+	var tmpServices []tmpService
+	_, err = r.ExecQuery(ctx, database.Select, SERVICE_LIST,
+		&tmpServices)
 	if err != nil {
-		return nil, err
+		return
 	}
-	defer rows.Close()
 
-	var methods []*models.Method
-	for rows.Next() {
-		var method models.Method
-		err = rows.Scan(&method.ID, &method.Name)
+	for _, tmp := range tmpServices {
+		var service models.Service
+		service, err = tmp.Service()
 		if err != nil {
-			return nil, err
+			return
 		}
-
-		methods = append(methods, &method)
+		services = append(services, service)
 	}
 
-	return methods, nil
+	return
 }

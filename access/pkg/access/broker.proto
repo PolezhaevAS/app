@@ -7,9 +7,8 @@ service AccessBroker {
     rpc UserAccess(UserAccessRequest) returns(UserAccessResponse);
 }
 
-message Service {
-    string name = 1;
-    repeated string methods = 2;
+message Methods {
+    repeated string name = 1;
 }
 
 message UserAccessRequest {
@@ -17,5 +16,5 @@ message UserAccessRequest {
 }
 
 message UserAccessResponse {
-    repeated Service access = 1;
+    map<string, Methods> access = 1;
 }

@@ -1,15 +1,18 @@
 package service
 
 import (
-	"app/access/pkg/access"
-	"app/auth/internal/config"
-	db "app/auth/internal/database"
-	"app/auth/internal/models"
-	"app/internal/token"
 	"context"
 	"crypto/sha1"
 	"fmt"
 	"time"
+
+	"app/internal/token"
+
+	"app/access/pkg/access"
+
+	"app/auth/internal/config"
+	db "app/auth/internal/database"
+	"app/auth/internal/models"
 )
 
 // Service - work with users and authorization
@@ -56,9 +59,11 @@ type Service interface {
 
 	// Change user password -
 	// request to change user password by id from claims.
+	// User id used when request reset password by admin
 	// Return error or nil
 	ChangeUserPassword(ctx context.Context,
-		oldPassword, newPassword string, isReset bool) error
+		oldPassword, newPassword string, isReset bool,
+		userID uint64) error
 }
 
 type Auth struct {

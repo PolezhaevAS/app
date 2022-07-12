@@ -1,11 +1,13 @@
 package db
 
 import (
-	"app/auth/internal/models"
-	database "app/internal/sql"
 	"context"
 	"errors"
 	"fmt"
+
+	database "app/internal/sql"
+
+	"app/auth/internal/models"
 )
 
 const (
@@ -32,6 +34,7 @@ const (
 	CREATE = `
 		INSERT INTO users.users(name, login, password)
 		VALUES($1, $1, $2)
+		returning id;
 	`
 
 	// Update query
@@ -118,7 +121,7 @@ func (db *DB) Update(ctx context.Context,
 
 func (db *DB) Delete(ctx context.Context,
 	id uint64) (err error) {
-	_, err = db.ExecQuery(ctx, database.ExecWithReturningId,
+	_, err = db.ExecQuery(ctx, database.Exec,
 		DELETE, nil, id)
 	if err != nil {
 		return

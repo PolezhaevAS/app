@@ -32,9 +32,20 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
+var (
+	filter_Access_List_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Access_List_0(ctx context.Context, marshaler runtime.Marshaler, client AccessClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq empty.Empty
+	var protoReq ListRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Access_List_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.List(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -42,8 +53,15 @@ func request_Access_List_0(ctx context.Context, marshaler runtime.Marshaler, cli
 }
 
 func local_request_Access_List_0(ctx context.Context, marshaler runtime.Marshaler, server AccessServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq empty.Empty
+	var protoReq ListRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Access_List_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := server.List(ctx, &protoReq)
 	return msg, metadata, err
@@ -397,7 +415,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/List", runtime.WithHTTPPathPattern("/access/v1/group"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/List", runtime.WithHTTPPathPattern("/v1/access/groups"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -421,7 +439,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/Group", runtime.WithHTTPPathPattern("/access/v1/group/by_id"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/Group", runtime.WithHTTPPathPattern("/v1/access/groups/group"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -445,7 +463,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/CreateGroup", runtime.WithHTTPPathPattern("/access/v1/group"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/CreateGroup", runtime.WithHTTPPathPattern("/v1/access/groups"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -469,7 +487,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/UpdateGroup", runtime.WithHTTPPathPattern("/access/v1/group"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/UpdateGroup", runtime.WithHTTPPathPattern("/v1/access/groups"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -493,7 +511,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/DeleteGroup", runtime.WithHTTPPathPattern("/access/v1/group"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/DeleteGroup", runtime.WithHTTPPathPattern("/v1/access/groups"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -517,7 +535,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/Users", runtime.WithHTTPPathPattern("/access/v1/group/users"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/Users", runtime.WithHTTPPathPattern("/v1/access/groups/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -541,7 +559,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/AddUser", runtime.WithHTTPPathPattern("/access/v1/group/users"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/AddUser", runtime.WithHTTPPathPattern("/v1/access/groups/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -565,7 +583,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/RemoveUser", runtime.WithHTTPPathPattern("/access/v1/group/users"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/RemoveUser", runtime.WithHTTPPathPattern("/v1/access/groups/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -589,7 +607,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/ListServices", runtime.WithHTTPPathPattern("/access/v1/services"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/ListServices", runtime.WithHTTPPathPattern("/v1/access/services"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -613,7 +631,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/AddMethod", runtime.WithHTTPPathPattern("/access/v1/group/methods"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/AddMethod", runtime.WithHTTPPathPattern("/v1/access/groups/methods"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -637,7 +655,7 @@ func RegisterAccessHandlerServer(ctx context.Context, mux *runtime.ServeMux, ser
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/RemoveMethod", runtime.WithHTTPPathPattern("/access/v1/group/methods"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/access.grpc.Access/RemoveMethod", runtime.WithHTTPPathPattern("/v1/access/groups/methods"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -700,7 +718,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/List", runtime.WithHTTPPathPattern("/access/v1/group"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/List", runtime.WithHTTPPathPattern("/v1/access/groups"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -721,7 +739,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/Group", runtime.WithHTTPPathPattern("/access/v1/group/by_id"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/Group", runtime.WithHTTPPathPattern("/v1/access/groups/group"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -742,7 +760,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/CreateGroup", runtime.WithHTTPPathPattern("/access/v1/group"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/CreateGroup", runtime.WithHTTPPathPattern("/v1/access/groups"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -763,7 +781,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/UpdateGroup", runtime.WithHTTPPathPattern("/access/v1/group"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/UpdateGroup", runtime.WithHTTPPathPattern("/v1/access/groups"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -784,7 +802,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/DeleteGroup", runtime.WithHTTPPathPattern("/access/v1/group"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/DeleteGroup", runtime.WithHTTPPathPattern("/v1/access/groups"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -805,7 +823,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/Users", runtime.WithHTTPPathPattern("/access/v1/group/users"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/Users", runtime.WithHTTPPathPattern("/v1/access/groups/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -826,7 +844,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/AddUser", runtime.WithHTTPPathPattern("/access/v1/group/users"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/AddUser", runtime.WithHTTPPathPattern("/v1/access/groups/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -847,7 +865,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/RemoveUser", runtime.WithHTTPPathPattern("/access/v1/group/users"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/RemoveUser", runtime.WithHTTPPathPattern("/v1/access/groups/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -868,7 +886,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/ListServices", runtime.WithHTTPPathPattern("/access/v1/services"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/ListServices", runtime.WithHTTPPathPattern("/v1/access/services"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -889,7 +907,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/AddMethod", runtime.WithHTTPPathPattern("/access/v1/group/methods"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/AddMethod", runtime.WithHTTPPathPattern("/v1/access/groups/methods"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -910,7 +928,7 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/RemoveMethod", runtime.WithHTTPPathPattern("/access/v1/group/methods"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/access.grpc.Access/RemoveMethod", runtime.WithHTTPPathPattern("/v1/access/groups/methods"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -930,27 +948,27 @@ func RegisterAccessHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 }
 
 var (
-	pattern_Access_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"access", "v1", "group"}, ""))
+	pattern_Access_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "access", "groups"}, ""))
 
-	pattern_Access_Group_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"access", "v1", "group", "by_id"}, ""))
+	pattern_Access_Group_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "access", "groups", "group"}, ""))
 
-	pattern_Access_CreateGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"access", "v1", "group"}, ""))
+	pattern_Access_CreateGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "access", "groups"}, ""))
 
-	pattern_Access_UpdateGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"access", "v1", "group"}, ""))
+	pattern_Access_UpdateGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "access", "groups"}, ""))
 
-	pattern_Access_DeleteGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"access", "v1", "group"}, ""))
+	pattern_Access_DeleteGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "access", "groups"}, ""))
 
-	pattern_Access_Users_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"access", "v1", "group", "users"}, ""))
+	pattern_Access_Users_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "access", "groups", "users"}, ""))
 
-	pattern_Access_AddUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"access", "v1", "group", "users"}, ""))
+	pattern_Access_AddUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "access", "groups", "users"}, ""))
 
-	pattern_Access_RemoveUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"access", "v1", "group", "users"}, ""))
+	pattern_Access_RemoveUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "access", "groups", "users"}, ""))
 
-	pattern_Access_ListServices_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"access", "v1", "services"}, ""))
+	pattern_Access_ListServices_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "access", "services"}, ""))
 
-	pattern_Access_AddMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"access", "v1", "group", "methods"}, ""))
+	pattern_Access_AddMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "access", "groups", "methods"}, ""))
 
-	pattern_Access_RemoveMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"access", "v1", "group", "methods"}, ""))
+	pattern_Access_RemoveMethod_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "access", "groups", "methods"}, ""))
 )
 
 var (

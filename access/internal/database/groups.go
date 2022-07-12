@@ -1,201 +1,169 @@
 package db
 
 import (
-	"app/access/internal/database/queries"
-	"app/access/internal/models"
 	"context"
-	"database/sql"
+
+	"github.com/jmoiron/sqlx/types"
+	"github.com/lib/pq"
+
+	"app/access/internal/models"
+	database "app/internal/sql"
+)
+
+const (
+	GROUP = `
+		select g.id, g.name, g.description, json_agg(json_build_object('id', m.id, 'name', m."name")) methods, 
+		(
+			select 
+			array_agg(ug.user_id)
+			from access.user_groups ug 
+			where group_id  = g.id
+		) users from access.groups g	
+		left join access.group_methods gm on g.id = gm.group_id
+		left join access.methods m on gm.method_id = m.id 
+		where g.id = $1
+		group by g.id ;
+	`
+
+	GROUP_LIST = `
+		select g.id, g.name, g.description, json_agg(json_build_object('id', m.id, 'name', m."name")) methods, 
+		(
+			select 
+			array_agg(ug.user_id)
+			from access.user_groups ug 
+			where group_id  = g.id
+		) users from access.groups g	
+		left join access.group_methods gm on g.id = gm.group_id
+		left join access.methods m on gm.method_id = m.id 
+		where g.id > $1
+		group by g.id 
+		limit $2;
+	`
+
+	GROUP_SERVICES = `
+		SELECT s.id, s."name" , m.id, m."name"  
+		FROM "access".group_methods gm
+		JOIN "access".methods m on gm.method_id = m.id 
+		JOIN "access".services s on m.service_id = s.id  
+		WHERE gm.group_id = $1;
+	`
+
+	GROUP_CREATE = `
+		INSERT INTO "access"."groups"
+		("name", description)
+		VALUES($1, $2)
+		RETURNING id;
+	`
+
+	GROUP_UPDATE = `
+		UPDATE "access"."groups"
+		SET "name"=$2, description=$3
+		WHERE id=$1;
+	`
+
+	GROUP_DELETE = `
+		DELETE FROM access.groups WHERE id=$1;
+	`
+
+	GROUP_ADD_METHOD = `
+		INSERT INTO "access".group_methods
+		(group_id, method_id)
+		VALUES($1, $2);
+	`
+
+	GROUP_REMOVE_METHOD = `
+		DELETE FROM access.group_methods 
+		WHERE group_id = $1 and method_id = $2;
+	`
 )
 
 var _ Groups = (*GroupsRepo)(nil)
 
 type GroupsRepo struct {
-	*sql.DB
+	*database.Database
 }
 
-func NewGroupsRepo(db *sql.DB) *GroupsRepo {
+func NewGroupsRepo(db *database.Database) *GroupsRepo {
 	return &GroupsRepo{db}
 }
 
-func (r *GroupsRepo) List(ctx context.Context) ([]*models.Group, error) {
-	stmt, err := r.PrepareContext(ctx, queries.GROUP_LIST)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
+type tmpGroup struct {
+	ID          uint64
+	Name        string
+	Description string
+	Methods     types.JSONText
+	Users       pq.Int64Array
+}
 
-	rows, err := stmt.QueryContext(ctx)
+func (tmp *tmpGroup) Group() (g models.Group, err error) {
+	var m []models.Method
+	err = tmp.Methods.Unmarshal(&m)
 	if err != nil {
-		return nil, err
+		return
 	}
-	defer rows.Close()
 
-	var groups []*models.Group
-	for rows.Next() {
+	var usersID []uint64
+	for _, id := range tmp.Users {
+		usersID = append(usersID, uint64(id))
+	}
+
+	return models.Group{
+		ID:      tmp.ID,
+		Name:    tmp.Name,
+		Desc:    tmp.Description,
+		Methods: m,
+		Users:   usersID,
+	}, nil
+}
+
+func (r *GroupsRepo) List(ctx context.Context,
+	lastID, limit uint64) (groups []models.Group, err error) {
+	var tmpGroups []tmpGroup
+	_, err = r.ExecQuery(ctx, database.Select,
+		GROUP_LIST, &tmpGroups, lastID, limit)
+	if err != nil {
+		return
+	}
+
+	for _, tmp := range tmpGroups {
 		var group models.Group
-
-		err := rows.Scan(&group.ID, &group.Name, &group.Desc)
+		group, err = tmp.Group()
 		if err != nil {
-			return nil, err
+			return
 		}
-
-		group.Users, err = r.listUsers(ctx, group.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		group.Services, err = r.listServices(ctx, group.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		groups = append(groups, &group)
+		groups = append(groups, group)
 	}
 
-	return groups, nil
+	return
 }
 
-func (r *GroupsRepo) Group(ctx context.Context, id uint64) (*models.Group, error) {
-	stmt, err := r.PrepareContext(ctx, queries.GROUP)
+func (r *GroupsRepo) Group(ctx context.Context,
+	id uint64) (group models.Group, err error) {
+	var tmpGroup tmpGroup
+	_, err = r.ExecQuery(ctx, database.Get, GROUP,
+		&tmpGroup, id)
 	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	var group *models.Group
-	err = stmt.QueryRowContext(ctx, id).Scan(&group.ID, &group.Name, &group.Desc)
-	if err != nil {
-		return nil, err
+		return
 	}
 
-	group.Users, err = r.listUsers(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	group.Services, err = r.listServices(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return group, nil
+	return tmpGroup.Group()
 }
 
-func (r *GroupsRepo) listUsers(ctx context.Context, groupId uint64) ([]uint64, error) {
-	stmt, err := r.PrepareContext(ctx, queries.USERS_LIST)
+func (r *GroupsRepo) Create(ctx context.Context,
+	name, desc string) (id uint64, err error) {
+	id, err = r.ExecQuery(ctx, database.ExecWithReturningId,
+		GROUP_CREATE, nil, name, desc)
 	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.QueryContext(ctx, groupId)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var users []uint64
-	for rows.Next() {
-		var user uint64
-		err := rows.Scan(&user)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, user)
+		return
 	}
 
-	return users, nil
+	return
 }
 
-func (r *GroupsRepo) listServices(ctx context.Context, groupId uint64) ([]*models.Service, error) {
-	stmt, err := r.PrepareContext(ctx, queries.GROUP_SERVICES)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.QueryContext(ctx, groupId)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var services []*models.Service
-	for rows.Next() {
-		var service models.Service
-		err := rows.Scan(&service.ID, &service.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		service.Methods, err = r.methodsList(ctx, service.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		services = append(services, &service)
-	}
-
-	return services, nil
-}
-
-func (r *GroupsRepo) methodsList(ctx context.Context, serviceId uint64) ([]*models.Method, error) {
-	stmt, err := r.PrepareContext(ctx, queries.METHODS_LIST)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.QueryContext(ctx, serviceId)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var methods []*models.Method
-	for rows.Next() {
-		var method models.Method
-		err = rows.Scan(&method.ID, &method.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		methods = append(methods, &method)
-	}
-
-	return methods, nil
-}
-
-func (r *GroupsRepo) Create(ctx context.Context, name string, desc string) (*models.Group, error) {
-	stmt, err := r.PrepareContext(ctx, queries.GROUP_CREATE)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	var id int
-	err = stmt.QueryRowContext(ctx, name, desc).Scan(&id)
-	if err != nil {
-		return nil, err
-	}
-
-	group := &models.Group{
-		ID:   uint64(id),
-		Name: name,
-		Desc: desc,
-	}
-
-	return group, nil
-}
-
-func (r *GroupsRepo) Update(ctx context.Context, group *models.Group) error {
-	stmt, err := r.PrepareContext(ctx, queries.GROUP_UPDATE)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, group.ID, group.Name, group.Desc)
+func (r *GroupsRepo) Update(ctx context.Context,
+	id uint64, name, desc string) error {
+	_, err := r.ExecQuery(ctx, database.Exec, GROUP_UPDATE,
+		nil, id, name, desc)
 	if err != nil {
 		return err
 	}
@@ -204,13 +172,8 @@ func (r *GroupsRepo) Update(ctx context.Context, group *models.Group) error {
 }
 
 func (r *GroupsRepo) Delete(ctx context.Context, id uint64) error {
-	stmt, err := r.PrepareContext(ctx, queries.GROUP_DELETE)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, id)
+	_, err := r.ExecQuery(ctx, database.Exec, GROUP_DELETE,
+		nil, id)
 	if err != nil {
 		return err
 	}
@@ -218,14 +181,10 @@ func (r *GroupsRepo) Delete(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (r *GroupsRepo) AddMethod(ctx context.Context, id uint64, methodId uint64) error {
-	stmt, err := r.PrepareContext(ctx, queries.GROUP_ADD_METHOD)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, id, methodId)
+func (r *GroupsRepo) AddMethod(ctx context.Context,
+	id, mID uint64) error {
+	_, err := r.ExecQuery(ctx, database.Exec, GROUP_ADD_METHOD,
+		nil, id, mID)
 	if err != nil {
 		return err
 	}
@@ -233,14 +192,10 @@ func (r *GroupsRepo) AddMethod(ctx context.Context, id uint64, methodId uint64) 
 	return nil
 }
 
-func (r *GroupsRepo) RemoveMethod(ctx context.Context, id uint64, methodId uint64) error {
-	stmt, err := r.PrepareContext(ctx, queries.GROUP_REMOVE_METHOD)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, id, methodId)
+func (r *GroupsRepo) RemoveMethod(ctx context.Context,
+	id, mID uint64) error {
+	_, err := r.ExecQuery(ctx, database.Exec, GROUP_REMOVE_METHOD,
+		nil, id, mID)
 	if err != nil {
 		return err
 	}

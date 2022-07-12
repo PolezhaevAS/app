@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"app/internal/service"
-	"app/internal/token"
 	"context"
 	"errors"
 	"strings"
@@ -10,6 +8,9 @@ import (
 	grpcmid "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"google.golang.org/grpc"
+
+	"app/internal/service"
+	"app/internal/token"
 )
 
 const Scheme = "bearer"

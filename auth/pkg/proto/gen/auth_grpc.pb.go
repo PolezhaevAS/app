@@ -37,15 +37,15 @@ type AuthClient interface {
 	User(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	// Create new user
 	// Request: login, password
-	// Response: error
+	// Response:
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Delete user by user id
 	// Request: user id
-	// Response: error
+	// Response:
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Reset user password by user id
 	// Request: user id, new password
-	// Response: error
+	// Response:
 	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Stream update users
 	// Request:
@@ -53,11 +53,11 @@ type AuthClient interface {
 	UpdateStream(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (Auth_UpdateStreamClient, error)
 	// Change name, login, email
 	// Request: new name, login, email
-	// Response: error
+	// Response:
 	ChangeUser(ctx context.Context, in *ChangeUserRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Change password
 	// Request: new password
-	// Response: error
+	// Response:
 	ChangeUserPassword(ctx context.Context, in *ChangeUserPasswordRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
@@ -191,15 +191,15 @@ type AuthServer interface {
 	User(context.Context, *UserRequest) (*UserResponse, error)
 	// Create new user
 	// Request: login, password
-	// Response: error
+	// Response:
 	Create(context.Context, *CreateRequest) (*empty.Empty, error)
 	// Delete user by user id
 	// Request: user id
-	// Response: error
+	// Response:
 	Delete(context.Context, *DeleteRequest) (*empty.Empty, error)
 	// Reset user password by user id
 	// Request: user id, new password
-	// Response: error
+	// Response:
 	ResetPassword(context.Context, *ResetPasswordRequest) (*empty.Empty, error)
 	// Stream update users
 	// Request:
@@ -207,11 +207,11 @@ type AuthServer interface {
 	UpdateStream(*empty.Empty, Auth_UpdateStreamServer) error
 	// Change name, login, email
 	// Request: new name, login, email
-	// Response: error
+	// Response:
 	ChangeUser(context.Context, *ChangeUserRequest) (*empty.Empty, error)
 	// Change password
 	// Request: new password
-	// Response: error
+	// Response:
 	ChangeUserPassword(context.Context, *ChangeUserPasswordRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedAuthServer()
 }

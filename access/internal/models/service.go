@@ -5,7 +5,7 @@ import pb "app/access/pkg/proto/gen"
 type Service struct {
 	ID      uint64
 	Name    string
-	Methods []*Method
+	Methods []Method
 }
 
 func (s *Service) Proto() *pb.Service {

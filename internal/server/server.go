@@ -1,7 +1,6 @@
 package server
 
 import (
-	"app/internal/server/auth"
 	"log"
 	"net"
 	"os"
@@ -11,6 +10,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
+	"app/internal/server/auth"
 )
 
 // The Config represents gRPC server configurations.

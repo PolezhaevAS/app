@@ -4,238 +4,86 @@ import (
 	db "app/access/internal/database"
 	"app/access/internal/models"
 	"context"
-	"fmt"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type Service interface {
-	// Get user access by user id
-	Access(ctx context.Context, userId uint64) (map[string][]string, error)
-	// Get list groups
-	List(ctx context.Context) ([]*models.Group, error)
-	// Get group by id
-	Group(ctx context.Context, id uint64) (*models.Group, error)
-	// Create new group
-	CreateGroup(ctx context.Context, name, descr string) (*models.Group, error)
-	// Update group
-	UpdateGroup(ctx context.Context, g *models.Group) error
-	// Delete group by id
-	DeleteGroup(ctx context.Context, id uint64) error
-	// Get users in group by group id
-	Users(ctx context.Context, id uint64) ([]uint64, error)
-	// Add user into group
-	AddUser(ctx context.Context, id uint64, userId uint64) error
-	// Remove user from group
-	RemoveUser(ctx context.Context, id uint64, userId uint64) error
-	// Get list services
-	ListService(ctx context.Context) ([]*models.Service, error)
-	// Add method to group
-	AddMethod(ctx context.Context, id uint64, methodId uint64) error
-	// Remove method from group
-	RemoveMethod(ctx context.Context, id uint64, methodId uint64) error
-}
+	// Access -
+	// request user access by user id
+	// Return map[ServiceName][]MethodName or error
+	Access(ctx context.Context, userID uint64) (
+		map[string][]string, error)
 
-var _ Service = (*Access)(nil)
+	// List -
+	// request list groups by last request id and limit
+	// Return group list or error
+	List(ctx context.Context,
+		lastID, limit uint64) (groups []models.Group, err error)
+
+	// Group -
+	// request group by group id
+	// Return group or error
+	Group(ctx context.Context,
+		groupID uint64) (group models.Group, err error)
+
+	// Create group -
+	// request to create group
+	// Return nil or error
+	CreateGroup(ctx context.Context,
+		name, desc string) (id uint64, err error)
+
+	// Update group -
+	// request update group by group id
+	// Return nil or error
+	UpdateGroup(ctx context.Context,
+		groupID uint64, name, desc string) error
+
+	// Delete group -
+	// request delete group by group id
+	// Return nil or error
+	DeleteGroup(ctx context.Context,
+		groupID uint64) error
+
+	// Users -
+	// request users in group by group id
+	// Return []usersID or error
+	Users(ctx context.Context,
+		groupID uint64) (usersID []uint64, err error)
+
+	// Add user -
+	// request add user id into group by group id
+	// Return nil or error
+	AddUser(ctx context.Context,
+		groupID, userID uint64) error
+
+	// Remove user -
+	// request remove user from group by group id
+	// Return nil or error
+	RemoveUser(ctx context.Context,
+		groupID, userID uint64) error
+
+	// Add method -
+	// request to add method in group by group id
+	// Return nil or error
+	AddMethod(ctx context.Context,
+		groupID, methodID uint64) error
+
+	// Remove method -
+	// request remove method from group by group by id
+	// Return nil or error
+	RemoveMethod(ctx context.Context,
+		groupID, methodID uint64) error
+
+	// List servives -
+	// request list services
+	// Return []Service or error
+	ListServices(ctx context.Context) (services []models.Service,
+		err error)
+}
 
 type Access struct {
 	db db.Repository
 }
 
-func New(db db.Repository) *Access {
+func New(db db.Repository) Service {
 	return &Access{db: db}
-}
-
-func (s *Access) Access(ctx context.Context, userId uint64) (map[string][]string, error) {
-
-	if userId <= 0 {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid user id: %d", userId))
-	}
-
-	access, err := s.db.Users().Access(ctx, userId)
-	if err != nil {
-		return nil, status.Error(codes.Aborted, fmt.Sprintf("Access error: %s", err.Error()))
-	}
-
-	return access, nil
-}
-
-func (s *Access) List(ctx context.Context) ([]*models.Group, error) {
-	groups, err := s.db.Groups().List(ctx)
-	if err != nil {
-		return nil, status.Error(codes.Aborted, fmt.Sprintf("List error: %s", err.Error()))
-	}
-
-	return groups, nil
-}
-
-func (s *Access) Group(ctx context.Context, id uint64) (*models.Group, error) {
-
-	err := s.validateInputGroupId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	group, err := s.db.Groups().Group(ctx, id)
-	if err != nil {
-		return nil, status.Error(codes.Aborted, fmt.Sprintf("Group error: %s", err.Error()))
-	}
-
-	return group, nil
-}
-
-func (s *Access) CreateGroup(ctx context.Context, name, descr string) (*models.Group, error) {
-
-	if name == "" {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid name group: %s. Name group empty", name))
-	}
-
-	group, err := s.db.Groups().Create(ctx, name, descr)
-	if err != nil {
-		return nil, status.Error(codes.Aborted, fmt.Sprintf("Create group error: %s", err.Error()))
-	}
-
-	return group, nil
-}
-
-func (s *Access) UpdateGroup(ctx context.Context, g *models.Group) error {
-
-	err := s.validateInputGroupId(ctx, g.ID)
-	if err != nil {
-		return err
-	}
-
-	err = s.db.Groups().Update(ctx, g)
-	if err != nil {
-		return status.Error(codes.Aborted, fmt.Sprintf("Update group error: %s", err.Error()))
-	}
-
-	return nil
-}
-
-func (s *Access) DeleteGroup(ctx context.Context, id uint64) error {
-
-	err := s.validateInputGroupId(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.db.Groups().Delete(ctx, id)
-	if err != nil {
-		return status.Error(codes.Aborted, fmt.Sprintf("Delete group error: %s", err.Error()))
-	}
-
-	return nil
-}
-
-func (s *Access) Users(ctx context.Context, id uint64) ([]uint64, error) {
-
-	err := s.validateInputGroupId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	usersId, err := s.db.Users().Users(ctx, id)
-	if err != nil {
-		return nil, status.Error(codes.Aborted, fmt.Sprintf("Users error: %s", err.Error()))
-	}
-
-	return usersId, nil
-}
-
-func (s *Access) AddUser(ctx context.Context, id uint64, userId uint64) error {
-
-	err := s.validateInputGroupId(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.db.Users().Add(ctx, id, userId)
-	if err != nil {
-		return status.Error(codes.Aborted, fmt.Sprintf("Add user error: %s", err.Error()))
-	}
-
-	return nil
-}
-
-func (s *Access) RemoveUser(ctx context.Context, id uint64, userId uint64) error {
-
-	err := s.validateInputGroupId(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.db.Users().Remove(ctx, id, userId)
-	if err != nil {
-		return status.Error(codes.Aborted, fmt.Sprintf("Remove user error: %s", err.Error()))
-	}
-
-	return nil
-}
-
-func (s *Access) ListService(ctx context.Context) ([]*models.Service, error) {
-	services, err := s.db.Services().List(ctx)
-	if err != nil {
-		return nil, status.Error(codes.Aborted, fmt.Sprintf("List services error: %s", err.Error()))
-	}
-
-	return services, nil
-}
-
-func (s *Access) AddMethod(ctx context.Context, id uint64, methodId uint64) error {
-
-	err := s.validateInputGroupId(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.db.Groups().AddMethod(ctx, id, methodId)
-	if err != nil {
-		return status.Error(codes.Aborted, fmt.Sprintf("Add method error: %s", err.Error()))
-	}
-
-	return nil
-}
-
-func (s *Access) RemoveMethod(ctx context.Context, id uint64, methodId uint64) error {
-
-	err := s.validateInputGroupId(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.db.Groups().RemoveMethod(ctx, id, methodId)
-	if err != nil {
-		return status.Error(codes.Aborted, fmt.Sprintf("Remove method error: %s", err.Error()))
-	}
-
-	return nil
-}
-
-func (s *Access) validateInputGroupId(ctx context.Context, id uint64) error {
-
-	if id <= 0 {
-		return status.Error(codes.InvalidArgument, fmt.Sprintf("invalid group id: %d", id))
-	}
-
-	err := s.checkGroup(ctx, id)
-	if err != nil {
-		return status.Error(codes.InvalidArgument, fmt.Sprintf("Check exists group: %s", err.Error()))
-	}
-
-	return nil
-}
-
-func (s *Access) checkGroup(ctx context.Context, id uint64) error {
-	g, err := s.db.Groups().Group(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	if g == nil {
-		return fmt.Errorf("not exists group with id %d", id)
-	}
-
-	return nil
 }

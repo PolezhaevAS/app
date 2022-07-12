@@ -3,12 +3,12 @@ package config
 import (
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"app/internal/broker"
 	"app/internal/server"
 	db "app/internal/sql"
 	"app/internal/token"
-
-	"github.com/spf13/viper"
 )
 
 type AuthConfig struct {

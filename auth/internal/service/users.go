@@ -1,8 +1,9 @@
 package service
 
 import (
-	"app/auth/internal/models"
 	"context"
+
+	"app/auth/internal/models"
 )
 
 func (s *Auth) List(ctx context.Context,

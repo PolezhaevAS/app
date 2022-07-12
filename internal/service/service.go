@@ -1,10 +1,10 @@
 package service
 
 import (
+	"google.golang.org/grpc"
+
 	access "app/access/pkg/proto/gen"
 	auth "app/auth/pkg/proto/gen"
-
-	"google.golang.org/grpc"
 )
 
 type Service struct {

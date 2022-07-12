@@ -42,7 +42,7 @@ service Auth {
 
     // Create new user
     // Request: login, password
-    // Response: error
+    // Response: 
     rpc Create(CreateRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/v1/auth/admin/users"
@@ -52,7 +52,7 @@ service Auth {
 
     // Delete user by user id
     // Request: user id
-    // Response: error
+    // Response: 
     rpc Delete(DeleteRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
             delete: "/v1/auth/admin/users"
@@ -61,7 +61,7 @@ service Auth {
 
     // Reset user password by user id
     // Request: user id, new password
-    // Response: error
+    // Response: 
     rpc ResetPassword(ResetPasswordRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
             put: "/v1/auth/admin/reset_password"
@@ -86,7 +86,7 @@ service Auth {
 
     // Change name, login, email
     // Request: new name, login, email
-    // Response: error
+    // Response: 
     rpc ChangeUser(ChangeUserRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
             put: "/v1/auth/user"
@@ -96,7 +96,7 @@ service Auth {
 
     // Change password
     // Request: new password
-    // Response: error
+    // Response: 
     rpc ChangeUserPassword(ChangeUserPasswordRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
             put: "/v1/auth/user/password"
@@ -163,7 +163,8 @@ message DeleteRequest {
 }
 
 message ResetPasswordRequest {
-    string new_password = 1;
+    uint64 user_id = 1;
+    string new_password = 2;
 }
 
 message UpdateStreamResponse {

@@ -8,8 +8,9 @@ token:
 
 # postgresql database configuration.
 db:
-  driver: 'postgres'
+  driver: 'pgx'
   url: 'postgresql://postgres:qwerty@postgres-users:5432/access?sslmode=disable'
+  max_limit: 1000
 
 broker:
   url: "amqp://guest:guest@rabbitmq:5672/"

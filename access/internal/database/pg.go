@@ -1,72 +1,107 @@
 package db
 
 import (
-	"app/access/internal/models"
-	sqldb "app/internal/sql"
 	"context"
 
-	_ "github.com/lib/pq"
+	sqldb "app/internal/sql"
+
+	"app/access/internal/models"
 )
 
 type Repository interface {
-	FirstStart(context.Context) error
-	Close()
-
 	Groups() Groups
 	Users() Users
 	Services() Services
+
+	FirstStart(context.Context) error
+	Close()
 }
 
+// Groups repo -
+// work with group repository
 type Groups interface {
-	// Get list groups
-	List(context.Context) ([]*models.Group, error)
+	// List -
+	// get page list groups from db by last id gruop and limit
+	// Return: list group or error
+	List(ctx context.Context,
+		lastID, limit uint64) (groups []models.Group, err error)
 
-	// Get group by id
-	Group(ctx context.Context, id uint64) (*models.Group, error)
+	// Group -
+	// get group by id
+	// Return: group or error
+	Group(ctx context.Context,
+		groupID uint64) (group models.Group, err error)
 
-	// Create new group
-	Create(ctx context.Context, name string, descr string) (*models.Group, error)
+	// Create -
+	// Create group
+	// Return: last index or error
+	Create(ctx context.Context,
+		name, description string) (indexID uint64, err error)
 
-	// Update group by id
-	Update(ctx context.Context, group *models.Group) error
+	// Update -
+	// update group by id
+	// Return: nil or error
+	Update(ctx context.Context,
+		groupID uint64, name, description string) error
 
+	// Delete -
 	// Delete group by id
-	Delete(ctx context.Context, id uint64) error
+	// Return: nil or error
+	Delete(ctx context.Context,
+		groupID uint64) (err error)
 
-	// Add method into group by group id and method id
-	AddMethod(ctx context.Context, id uint64, methodId uint64) error
+	// Add method -
+	// add method to group by group id and method id
+	// Return: nil or error
+	AddMethod(ctx context.Context,
+		groupID, methodID uint64) error
 
-	// Remove method from group by group id nad method id
-	RemoveMethod(ctx context.Context, id uint64, methodId uint64) error
+	// Remove method -
+	// remove method from group by group id and method
+	// Return: nil or error
+	RemoveMethod(ctx context.Context,
+		groupID, methodID uint64) error
 }
 
 type Users interface {
-	// Get user access by id
-	// Return map[service_name][]method_name
-	Access(ctx context.Context, id uint64) (map[string][]string, error)
+	// Access -
+	// get user access by user id
+	// Return: map[service_name][]method_name or error
+	Access(ctx context.Context,
+		userID uint64) (map[string][]string, error)
 
-	// Get users id in group by group id
-	Users(ctx context.Context, id uint64) ([]uint64, error)
+	// Users -
+	// get list users id in group by group id
+	// Return: list of users id or error
+	Users(ctx context.Context,
+		groupID uint64) ([]uint64, error)
 
-	// Add user into group by group id and user id
-	Add(ctx context.Context, id uint64, userId uint64) error
+	// Add -
+	// add user into group by group id and user id
+	// Return: nil or error
+	Add(ctx context.Context,
+		groupID uint64, userID uint64) error
 
-	// Remove user from group by group id and user id
-	Remove(ctx context.Context, id uint64, userId uint64) error
+	// Remove -
+	// remove user from group by group id and user id
+	// Return: nil or error
+	Remove(ctx context.Context,
+		groupID uint64, userID uint64) error
 }
 
 type Services interface {
-	// Get list service with methods
-	List(ctx context.Context) ([]*models.Service, error)
+	// List -
+	// get list service with methods
+	// Return: list of services or error
+	List(ctx context.Context) (
+		services []models.Service, err error)
 }
-
-var _ Repository = (*DB)(nil)
 
 type DB struct {
 	*sqldb.Database
 }
 
-func New(cfg *sqldb.Config) (*DB, error) {
+func New(cfg *sqldb.Config) (Repository, error) {
 
 	sqlDB, err := sqldb.New(cfg)
 	if err != nil {
@@ -80,13 +115,13 @@ func New(cfg *sqldb.Config) (*DB, error) {
 }
 
 func (db *DB) Groups() Groups {
-	return NewGroupsRepo(db.Conn)
-}
-
-func (db *DB) Services() Services {
-	return NewServicesRepo(db.Conn)
+	return NewGroupsRepo(db.Database)
 }
 
 func (db *DB) Users() Users {
-	return NewUsersRepo(db.Conn)
+	return NewUsersRepo(db.Database)
+}
+
+func (db *DB) Services() Services {
+	return NewServicesRepo(db.Database)
 }

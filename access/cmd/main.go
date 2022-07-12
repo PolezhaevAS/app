@@ -1,6 +1,15 @@
 package main
 
 import (
+	"context"
+	"flag"
+	"log"
+
+	"app/internal/broker"
+	grpc_server "app/internal/server"
+	auth "app/internal/server/auth"
+	token "app/internal/token"
+
 	broker_auth "app/access/internal/broker"
 	"app/access/internal/config"
 	db "app/access/internal/database"
@@ -8,13 +17,6 @@ import (
 	service_access "app/access/internal/service"
 	broker_pb "app/access/pkg/access/gen"
 	pb "app/access/pkg/proto/gen"
-	"app/internal/broker"
-	grpc_server "app/internal/server"
-	auth "app/internal/server/auth"
-	token "app/internal/token"
-	"context"
-	"flag"
-	"log"
 )
 
 func main() {
@@ -28,7 +30,7 @@ func main() {
 		grpc      *grpc_server.Server
 		grpc_auth *auth.Auth
 		server    *server_access.Server
-		service   *service_access.Access
+		service   service_access.Service
 	)
 
 	init := flag.Bool("init", false, "first start")

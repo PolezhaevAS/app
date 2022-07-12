@@ -6,85 +6,110 @@ option go_package = "app/access/pkg/proto;pb";
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 
+// Access service -
+// used for work with users access
 service Access {
+
     // Get list groups
-    rpc List(google.protobuf.Empty) returns(ListResponse) {
+    // Request: last id, limit
+    // Response: list groups
+    rpc List(ListRequest) returns(ListResponse) {
         option (google.api.http) = {
-            get: "/access/v1/group"
+            get: "/v1/access/groups"
         };
     }
 
-    // Get group
+    // Get group by id
+    // Request: id
+    // Response: group
     rpc Group(GroupRequest) returns(GroupResponse) {
         option (google.api.http) = {
-            get: "/access/v1/group/by_id"
+            get: "/v1/access/groups/group"
         };
     };
 
-    // Create new group 
+    // Create new group
+    // Request: name, description
+    // Response: 
     rpc CreateGroup(CreateGroupRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/access/v1/group"
+            post: "/v1/access/groups"
             body: "*"
         };
     }
 
-    // Update group
+    // Update group by id
+    // Request: id, name, description
+    // Response:
     rpc UpdateGroup(UpdateGroupRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            put: "/access/v1/group"
+            put: "/v1/access/groups"
             body: "*"
         };
     }
 
-    // Delete group
+    // Delete group by id
+    // Request: id
+    // Response:
     rpc DeleteGroup(DeleteGroupRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            delete: "/access/v1/group"
+            delete: "/v1/access/groups"
         };
     }
 
     // Get users from group
+    // Request: group id
+    // Response: list users id
     rpc Users(UsersRequest) returns(UsersResponse) {
         option (google.api.http) = {
-            get: "/access/v1/group/users"
+            get: "/v1/access/groups/users"
         };
     }
 
-    // Add user id into group
+    // Add users into group by group id
+    // Request: group id, user id
+    // Response: 
     rpc AddUser(AddUserRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            put: "/access/v1/group/users"
+            put: "/v1/access/groups/users"
             body: "*"
         };
     }
 
-    // Remove user id from group
+    // Remove user from group by group id and user id
+    // Request: group id, user id
+    // Response: 
     rpc RemoveUser(RemoveUserRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            delete: "/access/v1/group/users"
+            delete: "/v1/access/groups/users"
         };
     }
 
     // Get list services
+    // Request: 
+    // Response: list services
     rpc ListServices(google.protobuf.Empty) returns(ListServicesResponse) {
         option (google.api.http) = {
-            get: "/access/v1/services"
+            get: "/v1/access/services"
         };
     }
 
-    // Add access to method module into group by id
+    // Add method into group
+    // Request: group id, method id
+    // Response: 
     rpc AddMethod(AddMethodRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            put: "/access/v1/group/methods"
+            put: "/v1/access/groups/methods"
             body: "*"
         };
     }
 
-    // Remove access to method from group by id
+    // Remove method from group
+    // Request: group id, method id
+    // Response: 
     rpc RemoveMethod(RemoveMethodRequest) returns(google.protobuf.Empty) {
         option (google.api.http) = {
-            delete: "/access/v1/group/methods"
+            delete: "/v1/access/groups/methods"
         };
     }
 }
@@ -108,13 +133,18 @@ message Group {
     string name = 2;
     string desc = 3;
     repeated uint64 users = 4;
-    repeated Service services = 5;
+    repeated Method methods = 5;
 }
 
 //
 message AccessUser {
     string service = 1;
     string method = 2;
+}
+
+message ListRequest {
+    uint64 id = 1;
+    uint64 limit = 2;
 }
 
 //

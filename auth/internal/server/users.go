@@ -1,10 +1,12 @@
 package server
 
 import (
-	pb "app/auth/pkg/proto/gen"
 	"context"
+	"log"
 
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	pb "app/auth/pkg/proto/gen"
 )
 
 func (s *Server) List(ctx context.Context,
@@ -61,8 +63,10 @@ func (s *Server) Delete(ctx context.Context,
 
 func (s *Server) ResetPassword(ctx context.Context,
 	req *pb.ResetPasswordRequest) (*emptypb.Empty, error) {
+	log.Println(req.GetNewPassword())
+	log.Println(req.GetUserId())
 	err := s.s.ChangeUserPassword(ctx,
-		"", req.GetNewPassword(), true)
+		req.GetNewPassword(), req.GetNewPassword(), true, req.GetUserId())
 	if err != nil {
 		return &emptypb.Empty{}, s.getError(err)
 	}
