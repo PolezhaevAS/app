@@ -163,7 +163,8 @@ message DeleteRequest {
 }
 
 message ResetPasswordRequest {
-    string new_password = 1;
+    uint64 user_id = 1;
+    string new_password = 2;
 }
 
 message UpdateStreamResponse {

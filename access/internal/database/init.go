@@ -62,8 +62,9 @@ func (db *DB) initServices(ctx context.Context) error {
 
 func (db *DB) addService(ctx context.Context,
 	id int, name string) error {
-	_, err := db.ExecQuery(ctx, database.Exec, SERVICE_BY_ID,
-		nil, id)
+	var i uint64
+	_, err := db.ExecQuery(ctx, database.Get, SERVICE_BY_ID,
+		&i, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			_, err := db.ExecQuery(ctx, database.Exec,
@@ -83,8 +84,9 @@ func (db *DB) addService(ctx context.Context,
 
 func (db *DB) addMethods(ctx context.Context,
 	serviceID int, name string) error {
-	_, err := db.ExecQuery(ctx, database.Exec, METHOD_BY_NAME,
-		nil, serviceID, name)
+	var i uint64
+	_, err := db.ExecQuery(ctx, database.Get, METHOD_BY_NAME,
+		&i, serviceID, name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			_, err := db.ExecQuery(ctx, database.Exec,

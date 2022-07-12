@@ -48,9 +48,12 @@ func (b *Broker) UserAccess() {
 			continue
 		}
 
+		m := make(map[string]*access.Methods)
 		for k, v := range a {
-			resp.Access[k] = &access.Methods{Name: v}
+			m[k] = &access.Methods{Name: v}
 		}
+
+		resp.Access = m
 
 		err = b.b.ReplyTo(d, resp)
 		if err != nil {

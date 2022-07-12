@@ -121,7 +121,7 @@ func (db *DB) Update(ctx context.Context,
 
 func (db *DB) Delete(ctx context.Context,
 	id uint64) (err error) {
-	_, err = db.ExecQuery(ctx, database.ExecWithReturningId,
+	_, err = db.ExecQuery(ctx, database.Exec,
 		DELETE, nil, id)
 	if err != nil {
 		return

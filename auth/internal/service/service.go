@@ -59,9 +59,11 @@ type Service interface {
 
 	// Change user password -
 	// request to change user password by id from claims.
+	// User id used when request reset password by admin
 	// Return error or nil
 	ChangeUserPassword(ctx context.Context,
-		oldPassword, newPassword string, isReset bool) error
+		oldPassword, newPassword string, isReset bool,
+		userID uint64) error
 }
 
 type Auth struct {
