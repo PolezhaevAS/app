@@ -42,10 +42,20 @@ func (s *Server) User(ctx context.Context,
 
 func (s *Server) Create(ctx context.Context,
 	req *pb.CreateRequest) (*emptypb.Empty, error) {
-	err := s.s.Create(ctx,
+	id, err := s.s.Create(ctx,
 		req.GetLogin(), req.GetPassword())
 	if err != nil {
 		return &emptypb.Empty{}, s.getError(err)
+	}
+
+	s.event <- &pb.UpdateStreamResponse{
+		Action: pb.UpdateStreamResponse_ADD,
+		User: &pb.User{
+			Id:    id,
+			Name:  req.GetLogin(),
+			Login: req.GetLogin(),
+			Email: "",
+		},
 	}
 
 	return &emptypb.Empty{}, nil
@@ -56,6 +66,13 @@ func (s *Server) Delete(ctx context.Context,
 	err := s.s.Delete(ctx, req.GetId())
 	if err != nil {
 		return &emptypb.Empty{}, s.getError(err)
+	}
+
+	s.event <- &pb.UpdateStreamResponse{
+		Action: pb.UpdateStreamResponse_DELETE,
+		User: &pb.User{
+			Id: req.GetId(),
+		},
 	}
 
 	return &emptypb.Empty{}, nil

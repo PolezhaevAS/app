@@ -44,7 +44,7 @@ type Service interface {
 	// request to create new user with login and password.
 	// User name = login.
 	// Return error or nil
-	Create(ctx context.Context, login, password string) error
+	Create(ctx context.Context, login, password string) (uint64, error)
 
 	// Delete -
 	// request to delete user by id.

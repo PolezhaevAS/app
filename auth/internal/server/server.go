@@ -11,14 +11,26 @@ import (
 )
 
 type Server struct {
-	s service.Service
+	s     service.Service
+	u     *Updater
+	event chan *pb.UpdateStreamResponse
+
 	pb.UnimplementedAuthServer
 }
 
 func New(s service.Service) *Server {
-	return &Server{
-		s: s,
+
+	events := make(chan *pb.UpdateStreamResponse)
+
+	updater := NewUpdater(events)
+
+	serv := &Server{
+		s:     s,
+		u:     updater,
+		event: events,
 	}
+
+	return serv
 }
 
 func (s *Server) getError(err error) error {

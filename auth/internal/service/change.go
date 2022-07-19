@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"log"
 
 	"app/internal/token"
 
@@ -11,9 +10,7 @@ import (
 
 func (s *Auth) ChangeUser(ctx context.Context,
 	name, login, email string) (err error) {
-	claims, bl := token.ClaimsFromCtx(ctx)
-	log.Println(bl)
-	log.Println(claims)
+	claims, _ := token.ClaimsFromCtx(ctx)
 	user := models.User{
 		ID:    claims.UserID,
 		Name:  name,
@@ -42,9 +39,7 @@ func (s *Auth) ChangeUserPassword(ctx context.Context,
 		return
 	}
 
-	claims, b := token.ClaimsFromCtx(ctx)
-	log.Println(b)
-	log.Println(claims)
+	claims, _ := token.ClaimsFromCtx(ctx)
 	err = s.db.ChangePassword(ctx, claims.UserID,
 		oldPassword, newPassword, isReset)
 	if err != nil {

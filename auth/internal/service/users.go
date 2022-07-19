@@ -28,7 +28,7 @@ func (s *Auth) User(ctx context.Context,
 }
 
 func (s *Auth) Create(ctx context.Context,
-	login, password string) (err error) {
+	login, password string) (id uint64, err error) {
 	pass := s.getPasswordSHA1(password)
 	_, err = s.db.Create(ctx, login, pass)
 	if err != nil {
